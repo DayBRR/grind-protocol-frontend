@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+
+# Angular build output
+.angular/
+dist/
+out-tsc/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE / Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Local tooling
+.claude/
+
+# Environment / local overrides
+.env
+.env.*
+!.env.example
+
+# Coverage
+coverage/
+
+# Cache / temp
+.cache/
+tmp/
+temp/
+
+# Optional lockfiles backup
+*.tsbuildinfo
