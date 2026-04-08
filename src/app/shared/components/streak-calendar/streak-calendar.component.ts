@@ -48,15 +48,17 @@ export interface StreakDay {
 
     .streak-cal__day--hit {
       background: rgba(249,115,22,0.1);
-      border-color: rgba(249,115,22,0.25);
+      border-color: rgba(249,115,22,0.4);
+      box-shadow: inset 0 0 8px rgba(249,115,22,0.05);
     }
 
     .streak-cal__day--hit .streak-cal__dot {
       background: var(--streak);
-      box-shadow: 0 0 5px var(--streak);
+      box-shadow: 0 0 8px var(--streak);
+      transform: scale(1.2);
     }
 
-    .streak-cal__day--today { border-color: rgba(249,115,22,0.45); }
+    .streak-cal__day--today { border-color: var(--streak); border-style: dashed; }
 
     .streak-cal__dot {
       width: 5px; height: 5px;

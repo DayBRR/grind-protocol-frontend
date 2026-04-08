@@ -19,7 +19,7 @@ export interface RadarAxis {
   standalone: true,
   template: `<canvas #canvas></canvas>`,
   styles: [`
-    :host { display: block; width: 200px; height: 200px; flex-shrink: 0; }
+    :host { display: block; width: 100%; height: 100%; min-width: 0; min-height: 0; }
     canvas { display: block; width: 100% !important; height: 100% !important; }
   `]
 })
@@ -50,39 +50,58 @@ export class RadarChartComponent implements AfterViewInit, OnChanges, OnDestroy 
         labels: this.axes.map(a => a.label),
         datasets: [{
           data: this.axes.map(a => a.value),
-          backgroundColor: 'rgba(34,211,238,0.12)',
-          borderColor: 'rgba(34,211,238,0.8)',
-          borderWidth: 1.5,
-          pointBackgroundColor: 'rgba(34,211,238,1)',
-          pointBorderColor: '#1a1f2e',
-          pointBorderWidth: 1.5,
-          pointRadius: 3,
-          pointHoverRadius: 5,
+          backgroundColor: 'rgba(217, 70, 168, 0.15)',
+          borderColor: '#d946a8',
+          borderWidth: 2,
+          pointBackgroundColor: '#d946a8',
+          pointBorderColor: '#0a0a0c',
+          pointBorderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          pointHoverBackgroundColor: '#fff',
+          fill: true,
         }]
       },
       options: {
         responsive: true,
-        maintainAspectRatio: true,
-        animation: { duration: 600, easing: 'easeInOutQuart' },
-        plugins: { legend: { display: false }, tooltip: { enabled: false } },
+        maintainAspectRatio: false,
+        animation: { duration: 800, easing: 'easeOutQuart' },
+        plugins: { 
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#16161d',
+            titleFont: { family: 'Syne', size: 12, weight: 'bold' },
+            bodyFont: { family: 'DM Mono', size: 11 },
+            padding: 10,
+            displayColors: false,
+            borderColor: 'rgba(217, 70, 168, 0.3)',
+            borderWidth: 1
+          }
+        },
         scales: {
           r: {
             min: 0,
             max: 100,
+            beginAtZero: true,
             ticks: {
-              stepSize: 25,
+              stepSize: 20,
               display: false,
             },
             grid: {
-              color: 'rgba(255,255,255,0.06)',
-              circular: false,
+              color: 'rgba(255, 255, 255, 0.05)',
+              lineWidth: 1,
             },
             angleLines: {
-              color: 'rgba(255,255,255,0.08)',
+              color: 'rgba(255, 255, 255, 0.1)',
             },
             pointLabels: {
-              color: 'rgba(148,163,184,0.8)',
-              font: { size: 10, family: 'var(--font-mono, monospace)' },
+              color: '#8b899a',
+              font: { 
+                size: 9, 
+                family: 'Syne',
+                weight: 'bold'
+              },
+              padding: 5
             },
           }
         }

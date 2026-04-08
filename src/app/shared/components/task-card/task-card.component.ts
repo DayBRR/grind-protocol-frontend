@@ -66,27 +66,34 @@ const CATEGORY_COLOR: Record<string, string> = {
       transition: border-color 0.15s;
     }
 
-    .task-card:hover { border-color: var(--border-md); }
-    .task-card--done { opacity: 0.5; }
-    .task-card--done .task-card__title { text-decoration: line-through; color: var(--text-dim); }
+    .task-card:hover { border-color: var(--border-md); background: rgba(255,255,255,0.01); }
+    .task-card--done { opacity: 0.75; }
+    .task-card--done .task-card__title { text-decoration: line-through; color: var(--text-muted); }
 
     .task-card__check {
       width: 20px; height: 20px;
-      border-radius: 5px;
-      border: 1.5px solid var(--border-md);
+      border-radius: 6px;
+      border: 1.5px solid var(--border-strong);
       background: transparent;
-      color: white;
+      color: transparent;
       font-size: 11px;
+      font-weight: 900;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       flex-shrink: 0;
-      transition: all 0.15s;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
-    .task-card__check:hover:not(:disabled) { border-color: var(--xp); }
-    .task-card__check--done { background: var(--success) !important; border-color: var(--success) !important; }
+    .task-card__check:hover:not(:disabled) { border-color: #39ff14; transform: scale(1.1); }
+    .task-card__check--done { 
+      background: #39ff14 !important; 
+      border-color: #39ff14 !important; 
+      color: #000 !important;
+      box-shadow: 0 0 12px rgba(57, 255, 20, 0.7), 0 0 24px rgba(57, 255, 20, 0.3);
+      transform: scale(1.15);
+    }
     .task-card__check:disabled { cursor: default; }
 
     .task-card__body { flex: 1; min-width: 0; }

@@ -38,7 +38,7 @@ import { UserProfileService } from '../../core/auth/user-profile.service';
     .shell__content {
       flex: 1;
       overflow-y: auto;
-      padding: 24px;
+      padding: 20px;
     }
 
     .shell__content::-webkit-scrollbar { width: 4px; }
