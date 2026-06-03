@@ -32,12 +32,17 @@ const CIRCUMFERENCE = 2 * Math.PI * 40; // r=40
   styles: [`
     .ring-wrap {
       position: relative;
-      width: 96px;
-      height: 96px;
+      width: min(96px, 100%);
+      aspect-ratio: 1;
+      height: auto;
       flex-shrink: 0;
     }
 
-    .ring-svg { display: block; }
+    .ring-svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
 
     .ring-center {
       position: absolute;
@@ -48,7 +53,7 @@ const CIRCUMFERENCE = 2 * Math.PI * 40; // r=40
 
     .ring-number {
       display: block;
-      font-size: 20px;
+      font-size: clamp(14px, 22%, 20px);
       font-weight: 800;
       color: var(--text);
       line-height: 1;
@@ -56,7 +61,7 @@ const CIRCUMFERENCE = 2 * Math.PI * 40; // r=40
 
     .ring-sub {
       display: block;
-      font-size: 10px;
+      font-size: clamp(8px, 11%, 10px);
       color: var(--text-dim);
       font-family: var(--font-mono);
       margin-top: 2px;

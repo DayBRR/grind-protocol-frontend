@@ -67,22 +67,30 @@ const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
       <!-- ── TOP STATS (Row 2) ── -->
       <!-- Today's Progress -->
       <div class="card area-prog">
-        <div class="card-label">Today's progress</div>
-        <div class="daily-compact">
-          <div class="ring-box">
-            <gp-daily-ring [completed]="taskService.completedTodayCount() || 3" [total]="dailyGoal()" />
+        <div class="prog-top">
+          <span class="card-label" style="margin:0">Today's progress</span>
+        </div>
+        <div class="prog-body">
+          <div class="prog-ring-col">
+            <gp-daily-ring [completed]="taskService.completedTodayCount() || 3" [total]="5" />
           </div>
           <div class="daily-tasks-mini">
-            @for (task of mockTasks.slice(0,3); track task.id) {
+            @for (task of mockTasks; track task.id) {
               <div class="mini-task" [class.done]="task.completedToday">
                 <div class="mini-check">@if(task.completedToday){✓}</div>
                 <div class="mini-content">
-                   <span class="mini-name">{{ task.title }}</span>
-                   <span class="mini-xp">+{{ task.baseXp }} XP</span>
+                  <span class="mini-xp mono">+{{ task.baseXp }} XP</span>
+                  <span class="mini-name">{{ task.title }}</span>
                 </div>
               </div>
             }
           </div>
+        </div>
+        <div class="prog-footer">
+          <div class="prog-bar-track">
+            <div class="prog-bar-fill" style="width: 60%"></div>
+          </div>
+          <span class="prog-xp-total mono">+550 XP</span>
         </div>
       </div>
 
@@ -179,11 +187,11 @@ const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
   styles: [`
     .dashboard-container {
       display: grid;
-      grid-template-columns: 1.2fr 1fr 1fr;
-      grid-template-rows: auto 185px 270px auto;
+      grid-template-columns: 1fr 1.4fr 1fr;
+      grid-template-rows: auto 215px 270px auto;
       grid-template-areas:
         "hero hero hero"
-        "prog stre rewd"
+        "stre prog rewd"
         "perf perf rada"
         "time time time";
       gap: 12px;
@@ -241,12 +249,17 @@ const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
     .xp-bar__fill { height: 100%; background: var(--primary); box-shadow: 0 0 10px var(--primary-glow); transition: width 1s ease; }
     .xp-bar-labels { display: flex; justify-content: space-between; font-size: 9px; color: var(--text-muted); }
 
-    /* ── TOP ROW ── */
-    .daily-compact { display: flex; gap: 28px; align-items: center; flex: 1; }
-    .ring-box { width: 84px; height: 84px; flex-shrink: 0; }
-    .daily-tasks-mini { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 0; }
-    .mini-task { 
-      display: flex; align-items: center; gap: 10px; padding: 4px 0;
+    /* ── TODAY'S PROGRESS ── */
+    .prog-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-shrink: 0; }
+    .prog-body { display: flex; gap: 14px; flex: 1; min-height: 0; overflow: hidden; align-items: center; }
+    .prog-ring-col { width: 68px; height: 68px; flex-shrink: 0; }
+    .prog-footer { display: flex; align-items: center; gap: 10px; margin-top: 8px; flex-shrink: 0; }
+    .prog-bar-track { flex: 1; height: 3px; background: var(--bg-input); border-radius: 4px; overflow: hidden; }
+    .prog-bar-fill { height: 100%; background: var(--xp); box-shadow: 0 0 6px var(--xp-glow); border-radius: 4px; }
+    .prog-xp-total { font-size: 9px; font-weight: 800; color: var(--xp); flex-shrink: 0; }
+    .daily-tasks-mini { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; /*overflow: hidden;*/ }
+    .mini-task {
+      display: flex; align-items: center; gap: 8px; padding: 3px 0;
       transition: all 0.2s ease;
     }
     .mini-check { 
@@ -259,9 +272,9 @@ const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
       box-shadow: 0 0 10px var(--xp), 0 0 20px var(--xp-glow);
       transform: scale(1.1);
     }
-    .mini-content { display: flex; flex-direction: column; gap: 1px; flex: 1; overflow: hidden; }
-    .mini-name { font-size: 11px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .mini-xp { font-size: 8px; font-weight: 800; color: var(--text-dim); font-family: var(--font-mono); }
+    .mini-content { display: flex; flex-direction: row; align-items: center; gap: 8px; flex: 1; overflow: hidden; }
+    .mini-xp { font-size: 9px; font-weight: 800; color: var(--xp); font-family: var(--font-mono); flex-shrink: 0; }
+    .mini-name { font-size: 11px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
     .mini-task.done .mini-name { color: var(--text-muted); text-decoration: line-through; opacity: 0.7; }
     .mini-task.done .mini-xp { color: var(--xp); opacity: 0.8; }
 
@@ -388,7 +401,7 @@ const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
         grid-template-columns: 1fr 1fr;
         grid-template-areas:
           "hero hero"
-          "prog stre"
+          "stre prog"
           "rewd rewd"
           "perf perf"
           "rada rada"
@@ -413,10 +426,11 @@ export class DashboardComponent implements OnInit {
 
   // Rich Mock Data for UI Demonstration
   readonly mockTasks: any[] = [
-    { id: 1, title: 'Morning Cardio 30min', baseXp: 150, mandatory: true, completedToday: true },
-    { id: 2, title: 'Deep Work: Project Grind', baseXp: 300, mandatory: true, completedToday: true },
-    { id: 3, title: 'Read 20 pages of "Atomic Habits"', baseXp: 100, mandatory: false, completedToday: true },
-    { id: 4, title: 'Weekly Review & Planning', baseXp: 200, mandatory: false, completedToday: false },
+    { id: 1, title: 'Morning Cardio 30min',             baseXp: 150, mandatory: true,  completedToday: true  },
+    { id: 2, title: 'Deep Work: Project Grind',         baseXp: 300, mandatory: true,  completedToday: true  },
+    { id: 3, title: 'Read 20 pages of "Atomic Habits"', baseXp: 100, mandatory: false, completedToday: true  },
+    { id: 4, title: 'Weekly Review & Planning',         baseXp: 200, mandatory: false, completedToday: false },
+    { id: 5, title: 'Evening Meditation 10min',         baseXp:  80, mandatory: false, completedToday: false },
   ];
 
   readonly mockRewards: any[] = [
