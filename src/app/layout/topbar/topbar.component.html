@@ -1,0 +1,14 @@
+<header class="topbar">
+  <span class="topbar__title">{{ pageTitle() }}</span>
+
+  <div class="topbar__actions">
+    <span class="topbar__date mono">{{ today | date:'EEE dd MMM yyyy' | uppercase }}</span>
+
+    @if (profile()) {
+      <div class="topbar__cp mono">
+        <span class="topbar__cp-icon">🪙</span>
+        {{ profile()!.corePoints | number }}
+      </div>
+    }
+  </div>
+</header>

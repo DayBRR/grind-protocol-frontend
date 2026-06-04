@@ -1,0 +1,36 @@
+<div class="task-card" [class.task-card--done]="isDone" (click)="cardClick.emit(task)">
+  <button
+    class="task-card__check"
+    type="button"
+    [class.task-card__check--done]="isDone"
+    [disabled]="completing || isDone || !task.canCompleteToday"
+    (click)="$event.stopPropagation(); complete.emit(task)"
+    aria-label="Complete task"
+  >
+    @if (completing) {
+      <span>…</span>
+    } @else if (isDone) {
+      <span>✓</span>
+    }
+  </button>
+
+  <div class="task-card__body">
+    <span class="task-card__title">{{ task.title }}</span>
+    <div class="task-card__meta">
+      <span class="task-card__category" [style.color]="categoryColor">
+        {{ task.category }}
+      </span>
+      @if (task.repeatable) {
+        <span class="task-card__completion mono">{{ completionLabel }}</span>
+      }
+    </div>
+  </div>
+
+  <div class="task-card__right">
+    @if (task.mandatory) {
+      <span class="badge badge--req">REQ</span>
+    }
+    <span class="badge badge--diff" [style.color]="difficultyColor">{{ task.difficulty }}</span>
+    <span class="badge badge--xp mono">+{{ task.baseXp }} XP</span>
+  </div>
+</div>

@@ -9,17 +9,27 @@ export interface RegisterRequest {
   password: string;
 }
 
+/**
+ * Backend response for /auth/login, /auth/register and /auth/refresh.
+ *
+ * Current backend returns:
+ * {
+ *   "token": "<access-token>"
+ * }
+ *
+ * accessToken is kept optional only as a defensive compatibility fallback
+ * while older frontend code is being migrated.
+ */
 export interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
-  tokenType: string;
-  expiresIn: number;
+  token: string;
+  accessToken?: string;
 }
 
 export interface TokenPayload {
   sub: string;
-  userId: number;
-  role: string;
+  userId?: number;
+  role?: string;
+  roles?: string[];
   exp: number;
-  iat: number;
+  iat?: number;
 }

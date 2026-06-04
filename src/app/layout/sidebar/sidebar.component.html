@@ -1,0 +1,30 @@
+<nav class="sidebar">
+  <a routerLink="/dashboard" class="sidebar__logo" title="Dashboard">
+    <div class="logo-box">
+      <div class="logo-icon"></div>
+    </div>
+  </a>
+
+  <ul class="sidebar__nav">
+    @for (item of navItems; track item.path) {
+      <li>
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="sidebar__link--active"
+          class="sidebar__link"
+          [title]="item.label"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" [innerHTML]="item.icon | safeHtml"></svg>
+        </a>
+      </li>
+    }
+  </ul>
+
+  <div class="sidebar__bottom">
+    <button class="sidebar__link sidebar__logout" type="button" (click)="logout()" title="Logout">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M6 2H3a1 1 0 00-1 1v10a1 1 0 001 1h3M10 11l3-3-3-3M13 8H6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </div>
+</nav>

@@ -1,0 +1,54 @@
+    <div class="auth-page">
+      <div class="auth-card">
+        <!-- Logo -->
+        <div class="auth-card__logo">
+          <div class="logo-box"><div class="logo-icon"></div></div>
+          <h1 class="auth-card__brand">Grind Protocol</h1>
+        </div>
+
+        <h2 class="auth-card__title">Welcome back</h2>
+        <p class="auth-card__sub">Log in to continue your grind</p>
+
+        @if (error()) {
+          <div class="auth-card__error">{{ error() }}</div>
+        }
+
+        <div class="auth-form">
+          <div class="form-field">
+            <label class="form-label">Username</label>
+            <input
+              type="text"
+              placeholder="your_username"
+              [(ngModel)]="username"
+              autocomplete="username"
+              [disabled]="loading()"
+              (keyup.enter)="submit()"
+            />
+          </div>
+
+          <div class="form-field">
+            <label class="form-label">Password</label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              [(ngModel)]="password"
+              autocomplete="current-password"
+              [disabled]="loading()"
+              (keyup.enter)="submit()"
+            />
+          </div>
+
+          <button
+            class="btn btn-primary auth-submit"
+            [disabled]="loading()"
+            (click)="submit()"
+          >
+            {{ loading() ? 'Logging in...' : 'Log in' }}
+          </button>
+        </div>
+
+        <p class="auth-card__footer">
+          No account? <a routerLink="/auth/register">Create one</a>
+        </p>
+      </div>
+    </div>

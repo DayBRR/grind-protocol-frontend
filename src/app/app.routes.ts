@@ -37,16 +37,6 @@ export const routes: Routes = [
         path: 'profile',
         loadChildren: () =>
           import('./features/profile/profile.routes').then(m => m.PROFILE_ROUTES)
-      },
-      {
-        path: 'alerts',
-        loadChildren: () =>
-          import('./features/alerts/alerts.routes').then(m => m.ALERTS_ROUTES)
-      },
-      {
-        path: 'timeline',
-        loadChildren: () =>
-          import('./features/timeline/timeline.routes').then(m => m.TIMELINE_ROUTES)
       }
     ]
   },

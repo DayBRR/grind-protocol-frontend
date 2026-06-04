@@ -1,0 +1,80 @@
+<div class="task-list-page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Tasks</h1>
+      <p class="page-sub">{{ completedLabel() }}</p>
+    </div>
+
+    <button class="btn btn-primary" type="button" (click)="router.navigate(['/tasks/new'])">
+      + New Task
+    </button>
+  </div>
+
+  <div class="filter-tabs">
+    @for (tab of tabs; track tab.value) {
+      <button
+        type="button"
+        class="filter-tab"
+        [class.filter-tab--active]="filter() === tab.value"
+        (click)="filter.set(tab.value)"
+      >
+        {{ tab.label }}
+        <span class="filter-tab__count">{{ countFor(tab.value) }}</span>
+      </button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="state-card">Loading tasks...</div>
+  }
+
+  @if (errorMessage()) {
+    <div class="state-card state-card--error">
+      <span>{{ errorMessage() }}</span>
+      <button class="btn btn-ghost" type="button" (click)="loadTasks()">Retry</button>
+    </div>
+  }
+
+  @if (!loading() && !errorMessage()) {
+    <div class="tasks-section">
+      @if (filteredTasks().length === 0) {
+        <div class="empty">
+          <p class="empty__icon">📋</p>
+          <p class="empty__title">No tasks here</p>
+          <p class="empty__sub">Start by adding your first task</p>
+          <button class="btn btn-primary" type="button" (click)="router.navigate(['/tasks/new'])">Create task</button>
+        </div>
+      } @else {
+        @if (mandatoryTasks().length > 0) {
+          <div class="tasks-group">
+            <p class="tasks-group__label">Required</p>
+            @for (task of mandatoryTasks(); track task.id) {
+              <gp-task-card
+                [task]="task"
+                [completing]="isCompleting(task.id)"
+                (complete)="onComplete($event)"
+                (cardClick)="router.navigate(['/tasks', $event.id])"
+              />
+            }
+          </div>
+        }
+
+        @if (optionalTasks().length > 0) {
+          <div class="tasks-group">
+            @if (mandatoryTasks().length > 0) {
+              <p class="tasks-group__label">Optional</p>
+            }
+            @for (task of optionalTasks(); track task.id) {
+              <gp-task-card
+                [task]="task"
+                [completing]="isCompleting(task.id)"
+                (complete)="onComplete($event)"
+                (cardClick)="router.navigate(['/tasks', $event.id])"
+              />
+            }
+          </div>
+        }
+      }
+    </div>
+  }
+</div>

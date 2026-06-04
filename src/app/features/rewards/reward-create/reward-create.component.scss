@@ -1,0 +1,47 @@
+.create-page {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 40px;
+}
+
+.create-card {
+  width: 100%;
+  max-width: 560px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 28px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.create-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.create-title {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.create-text {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.btn--icon {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.create-actions {
+  display: flex;
+  justify-content: flex-end;
+}
