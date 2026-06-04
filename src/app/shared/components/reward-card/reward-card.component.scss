@@ -1,0 +1,107 @@
+.reward-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color 0.15s, transform 0.15s;
+  min-height: 190px;
+}
+
+.reward-card:hover {
+  border-color: var(--border-md);
+  transform: translateY(-1px);
+}
+
+.reward-card--affordable {
+  border-color: rgba(234, 179, 8, 0.22);
+  background: rgba(234, 179, 8, 0.045);
+}
+
+.reward-card--affordable:hover {
+  border-color: rgba(234, 179, 8, 0.38);
+}
+
+.reward-card--locked {
+  opacity: 0.74;
+}
+
+.reward-card__icon {
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  background: var(--bg-input);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reward-card__info {
+  flex: 1;
+}
+
+.reward-card__name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.reward-card__desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: 4px 0 0;
+  line-height: 1.5;
+}
+
+.reward-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 9px;
+}
+
+.reward-card__tags span {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-muted);
+  background: var(--bg-input);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 7px;
+  text-transform: uppercase;
+}
+
+.reward-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.reward-card__cost {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--currency);
+}
+
+.reward-card__status {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+
+.reward-card__status--locked {
+  color: var(--text-dim);
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+}
+
+.btn--sm {
+  padding: 5px 12px;
+  font-size: 11px;
+}

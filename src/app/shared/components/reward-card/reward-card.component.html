@@ -1,0 +1,42 @@
+<div
+  class="reward-card"
+  [class.reward-card--affordable]="reward.canAfford"
+  [class.reward-card--locked]="lockedReason"
+>
+  <div class="reward-card__icon">{{ icon }}</div>
+
+  <div class="reward-card__info">
+    <p class="reward-card__name">{{ reward.name }}</p>
+
+    @if (reward.description) {
+      <p class="reward-card__desc">{{ reward.description }}</p>
+    }
+
+    <div class="reward-card__tags">
+      <span>{{ reward.type }}</span>
+      <span>{{ reward.category }}</span>
+
+      @if (reward.repeatable) {
+        <span>Repeatable</span>
+      }
+
+      @if (reward.cooldownDays) {
+        <span>{{ reward.cooldownDays }}d cooldown</span>
+      }
+    </div>
+  </div>
+
+  <div class="reward-card__footer">
+    <span class="reward-card__cost mono">
+      🪙 {{ reward.costCorePoints }}
+    </span>
+
+    @if (lockedReason) {
+      <span class="reward-card__status reward-card__status--locked">
+        {{ lockedReason }}
+      </span>
+    } @else {
+      <button class="btn btn-primary btn--sm" (click)="onClaim()">Redeem</button>
+    }
+  </div>
+</div>

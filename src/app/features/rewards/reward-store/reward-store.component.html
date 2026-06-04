@@ -1,0 +1,106 @@
+<div class="store-page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Reward Store</h1>
+      <p class="page-sub">
+        Balance:
+        <span class="mono text-gold">{{ profile()?.corePoints ?? 0 | number }} CP</span>
+      </p>
+    </div>
+
+    <div class="page-header__note">
+      Reward creation will be enabled in a later backend phase.
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="store-error">
+      {{ error() }}
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="empty">
+      <p class="empty__icon">⏳</p>
+      <p class="empty__title">Loading rewards...</p>
+      <p class="empty__sub">Fetching your reward store from the backend.</p>
+    </div>
+  } @else {
+    @if (rewards().length === 0) {
+      <div class="empty">
+        <p class="empty__icon">🎁</p>
+        <p class="empty__title">No rewards available yet</p>
+        <p class="empty__sub">
+          The backend has not returned any enabled rewards for the store.
+        </p>
+      </div>
+    } @else {
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">Available rewards</h2>
+          <p class="section-sub">Spend Core Points on rewards configured in the backend.</p>
+        </div>
+
+        <div class="rewards-grid">
+          @for (reward of rewards(); track reward.id) {
+            <gp-reward-card
+              [reward]="reward"
+              [icon]="iconFor(reward)"
+              (claim)="onClaim($event)"
+            />
+          }
+        </div>
+      </section>
+    }
+
+    <section class="section">
+      <div class="section-header">
+        <h2 class="section-title">My redemptions</h2>
+        <p class="section-sub">Rewards you have already redeemed.</p>
+      </div>
+
+      @if (redemptions().length === 0) {
+        <div class="empty empty--small">
+          <p class="empty__title">No redemptions yet</p>
+          <p class="empty__sub">Redeem your first reward to see it here.</p>
+        </div>
+      } @else {
+        <div class="redemptions-list">
+          @for (redemption of redemptions(); track redemption.id) {
+            <article class="redemption">
+              <div>
+                <p class="redemption__name">{{ redemption.rewardName }}</p>
+                <p class="redemption__meta">
+                  {{ redemption.costPaid | number }} CP · {{ redemption.status }}
+                </p>
+                @if (redemption.redeemedAt) {
+                  <p class="redemption__date">Redeemed: {{ redemption.redeemedAt }}</p>
+                }
+              </div>
+
+              @if (redemption.status === 'REDEEMED' || redemption.status === 'AVAILABLE') {
+                <button class="btn btn-ghost btn--sm" (click)="useRedemption(redemption)">
+                  Mark as used
+                </button>
+              } @else {
+                <span class="redemption__badge">{{ redemption.status }}</span>
+              }
+            </article>
+          }
+        </div>
+      }
+    </section>
+  }
+</div>
+
+@if (claimTarget()) {
+  <gp-confirm-modal
+    [open]="true"
+    title="Redeem reward?"
+    [message]="'Spend ' + claimTarget()!.costCorePoints + ' Core Points to redeem: ' + claimTarget()!.name"
+    [detail]="'Remaining after redeem: ' + ((profile()?.corePoints ?? 0) - claimTarget()!.costCorePoints) + ' CP'"
+    [confirmLabel]="redeeming() ? 'Redeeming...' : 'Redeem'"
+    (confirm)="confirmClaim()"
+    (cancel)="claimTarget.set(null)"
+  />
+}
