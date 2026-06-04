@@ -1,0 +1,113 @@
+<div class="create-page">
+  <div class="create-card">
+    <div class="create-header">
+      <button class="btn btn-ghost btn--icon" type="button" (click)="router.navigate(['/tasks'])">←</button>
+      <h1 class="create-title">New Task</h1>
+    </div>
+
+    @if (error()) {
+      <div class="form-error">{{ error() }}</div>
+    }
+
+    <div class="form-section">
+      <label class="form-label" for="task-title">Title</label>
+      <input id="task-title" type="text" placeholder="e.g. Morning workout" [(ngModel)]="form.title" />
+    </div>
+
+    <div class="form-section">
+      <label class="form-label" for="task-description">Description (optional)</label>
+      <textarea id="task-description" placeholder="What does this task involve?" [(ngModel)]="form.description" rows="3"></textarea>
+    </div>
+
+    <div class="form-row">
+      <div class="form-section">
+        <label class="form-label" for="task-category">Category</label>
+        <select id="task-category" [(ngModel)]="form.category">
+          @for (cat of categories; track cat.value) {
+            <option [value]="cat.value">{{ cat.label }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="form-section">
+        <label class="form-label" for="task-type">Type</label>
+        <select id="task-type" [(ngModel)]="form.taskType">
+          @for (type of taskTypes; track type.value) {
+            <option [value]="type.value">{{ type.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <label class="form-label">Difficulty</label>
+      <gp-difficulty-selector [(value)]="form.difficulty" (valueChange)="onDifficultyChange($event)" />
+      <p class="form-hint">Base XP: {{ form.baseXp }}</p>
+    </div>
+
+    <div class="form-row">
+      <div class="form-section">
+        <label class="form-label toggle-label">
+          <span>Mandatory</span>
+          <button
+            type="button"
+            class="toggle"
+            [class.toggle--on]="form.mandatory"
+            (click)="form.mandatory = !form.mandatory"
+            [attr.aria-pressed]="form.mandatory"
+          >
+            <span class="toggle__thumb"></span>
+          </button>
+        </label>
+        <p class="form-hint">Required to qualify the day</p>
+      </div>
+
+      <div class="form-section">
+        <label class="form-label toggle-label">
+          <span>Repeatable</span>
+          <button
+            type="button"
+            class="toggle"
+            [class.toggle--on]="form.repeatable"
+            (click)="toggleRepeatable()"
+            [attr.aria-pressed]="form.repeatable"
+          >
+            <span class="toggle__thumb"></span>
+          </button>
+        </label>
+        <p class="form-hint">Can be completed multiple times per day</p>
+      </div>
+    </div>
+
+    @if (form.repeatable) {
+      <div class="form-section">
+        <label class="form-label" for="max-completions">Max completions per day</label>
+        <input
+          id="max-completions"
+          type="number"
+          min="2"
+          max="10"
+          [(ngModel)]="form.maxCompletionsPerDay"
+        />
+      </div>
+    }
+
+    <div class="xp-preview">
+      <div class="xp-preview__item">
+        <span class="xp-preview__label">XP earned</span>
+        <span class="xp-preview__val mono text-xp">+{{ form.baseXp }}</span>
+      </div>
+      <div class="xp-preview__item">
+        <span class="xp-preview__label">Core Points preview</span>
+        <span class="xp-preview__val mono text-gold">+{{ cpPreview() }}</span>
+      </div>
+    </div>
+
+    <div class="create-actions">
+      <button class="btn btn-ghost" type="button" (click)="router.navigate(['/tasks'])">Cancel</button>
+      <button class="btn btn-primary" type="button" [disabled]="saving()" (click)="save()">
+        {{ saving() ? 'Saving...' : 'Create Task' }}
+      </button>
+    </div>
+  </div>
+</div>

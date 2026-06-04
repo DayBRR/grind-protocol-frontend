@@ -1,0 +1,75 @@
+<div class="detail-page">
+  @if (loading()) {
+    <p class="loading">Loading task...</p>
+  }
+
+  @if (errorMessage()) {
+    <div class="state-card state-card--error">
+      <span>{{ errorMessage() }}</span>
+      <button class="btn btn-ghost" type="button" (click)="loadTask()">Retry</button>
+    </div>
+  }
+
+  @if (!loading() && task(); as t) {
+    <div class="detail-card">
+      <div class="detail-header">
+        <button class="btn btn-ghost btn--icon" type="button" (click)="router.navigate(['/tasks'])">←</button>
+        <div class="detail-header__info">
+          <div class="detail-badges">
+            <span class="badge-cat">{{ t.category }}</span>
+            <span class="badge-diff" [class]="'badge-diff--' + t.difficulty">{{ t.difficulty }}</span>
+            <span class="badge-type">{{ t.taskType | lowercase }}</span>
+            @if (t.mandatory) {
+              <span class="badge-req">REQUIRED</span>
+            }
+          </div>
+          <h1 class="detail-title">{{ t.title }}</h1>
+        </div>
+      </div>
+
+      @if (t.description) {
+        <p class="detail-desc">{{ t.description }}</p>
+      }
+
+      <div class="detail-stats">
+        <div class="detail-stat">
+          <span class="detail-stat__label">Base XP</span>
+          <span class="detail-stat__val mono text-xp">{{ t.baseXp }}</span>
+        </div>
+        <div class="detail-stat">
+          <span class="detail-stat__label">Core Points preview</span>
+          <span class="detail-stat__val mono text-gold">{{ t.baseXp / 10 | number:'1.0-0' }}</span>
+        </div>
+        <div class="detail-stat">
+          <span class="detail-stat__label">Completed today</span>
+          <span class="detail-stat__val mono">{{ t.completedToday ?? 0 }} / {{ t.maxCompletionsPerDay }}</span>
+        </div>
+        <div class="detail-stat">
+          <span class="detail-stat__label">Repeatable</span>
+          <span class="detail-stat__val">{{ t.repeatable ? 'Yes' : 'No' }}</span>
+        </div>
+      </div>
+
+      <button
+        class="btn btn-primary complete-btn"
+        type="button"
+        [disabled]="!t.canCompleteToday || completing()"
+        (click)="onComplete(t)"
+      >
+        @if (completing()) {
+          Completing...
+        } @else if (!t.canCompleteToday) {
+          ✓ Completed for today
+        } @else {
+          Complete Task → +{{ t.baseXp }} XP
+        }
+      </button>
+
+      <div class="info-zone">
+        <p>
+          Editing and deleting tasks are not connected yet because the current stable backend does not expose those endpoints.
+        </p>
+      </div>
+    </div>
+  }
+</div>
