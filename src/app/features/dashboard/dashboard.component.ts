@@ -1,24 +1,22 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { Router } from '@angular/router';
+import { forkJoin } from 'rxjs';
 
 import { UserProfileService } from '../../core/auth/user-profile.service';
+import { ProgressionService } from '../../core/http/progression.service';
+import { DailyProgressService } from '../../core/http/daily-progress.service';
 import { TaskService } from '../../core/http/task.service';
-import { AlertService } from '../../core/http/alert.service';
-import { TimelineService } from '../../core/http/timeline.service';
 import { RewardService } from '../../core/http/reward.service';
 
 import { XpProgressBarComponent } from '../../shared/components/xp-progress-bar/xp-progress-bar.component';
 import { DailyRingComponent } from '../../shared/components/daily-ring/daily-ring.component';
 import { StreakCalendarComponent, StreakDay } from '../../shared/components/streak-calendar/streak-calendar.component';
 import { TaskCardComponent } from '../../shared/components/task-card/task-card.component';
-import { AlertBannerComponent } from '../../shared/components/alert-banner/alert-banner.component';
-import { TimelineDotComponent } from '../../shared/components/timeline-dot/timeline-dot.component';
 import { LevelBadgeComponent } from '../../shared/components/level-badge/level-badge.component';
 import { RadarChartComponent, RadarAxis } from '../../shared/components/radar-chart/radar-chart.component';
 
 import { Task } from '../../core/models/domain.models';
-import { RelativeTimePipe } from '../../shared/pipes/relative-time.pipe';
 
 const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
@@ -27,27 +25,22 @@ const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
   standalone: true,
   imports: [
     DecimalPipe,
-    RelativeTimePipe,
     XpProgressBarComponent,
     DailyRingComponent,
     StreakCalendarComponent,
     TaskCardComponent,
-    AlertBannerComponent,
-    TimelineDotComponent,
     LevelBadgeComponent,
     RadarChartComponent,
   ],
   template: `
     <div class="dashboard">
 
-      <!-- ── ALERT BANNERS ─────────────────────────────── -->
-      @for (alert of criticalAlerts(); track alert.id) {
-        <gp-alert-banner
-          [alert]="alert"
-          [ctaLabel]="alert.alertType === 'STREAK_AT_RISK' ? 'Grind now' : null"
-          (ctaClick)="goToTasks()"
-          (dismiss)="alertService.dismiss($event).subscribe()"
-        />
+      @if (loading()) {
+        <div class="dashboard-state">Loading your grind data...</div>
+      }
+
+      @if (errorMessage()) {
+        <div class="dashboard-state dashboard-state--error">{{ errorMessage() }}</div>
       }
 
       <!-- ── HERO ──────────────────────────────────────── -->
@@ -58,13 +51,13 @@ const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
           <div class="hero__info">
             <div class="hero__name-row">
               <h2 class="hero__name">{{ p.displayName }}</h2>
-              <gp-level-badge [level]="p.level" [title]="p.levelTitle" />
+              <gp-level-badge [level]="level()" [title]="p.levelTitle" />
             </div>
             <gp-xp-progress-bar
-              [currentXp]="p.totalXp"
-              [targetXp]="p.totalXp + p.xpToNextLevel"
-              [progress]="p.xpProgress"
-              [level]="p.level"
+              [currentXp]="totalXp()"
+              [targetXp]="xpForNextLevel()"
+              [progress]="xpProgressFraction()"
+              [level]="level()"
               style="margin-top: 8px;"
             />
           </div>
@@ -72,17 +65,17 @@ const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
           <div class="hero__stats">
             <div class="stat-chip stat-chip--streak">
               <span>🔥</span>
-              <span class="stat-val">{{ p.currentStreak }}</span>
+              <span class="stat-val">{{ currentStreak() }}</span>
               <span class="stat-lbl">day streak</span>
             </div>
             <div class="stat-chip stat-chip--points">
               <span>🪙</span>
-              <span class="stat-val">{{ p.corePoints | number }}</span>
+              <span class="stat-val">{{ corePoints() | number }}</span>
               <span class="stat-lbl">CP</span>
             </div>
             <div class="stat-chip stat-chip--xp">
               <span>⚡</span>
-              <span class="stat-val">{{ p.totalXp | number }}</span>
+              <span class="stat-val">{{ totalXp() | number }}</span>
               <span class="stat-lbl">XP</span>
             </div>
           </div>
@@ -99,16 +92,16 @@ const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
           <div class="card">
             <div class="card-header">
               <p class="card-label">Today's progress</p>
-              <div class="daily-count mono">{{ taskService.completedTodayCount() }} / {{ dailyGoal() }}</div>
+              <div class="daily-count mono">{{ completedTodayCount() }} / {{ dailyGoal() }}</div>
             </div>
             <div class="daily-wrap">
-              <gp-daily-ring [completed]="taskService.completedTodayCount()" [total]="dailyGoal()" />
+              <gp-daily-ring [completed]="completedTodayCount()" [total]="dailyGoal()" />
               <div class="daily-tasks">
                 @for (task of todayTasks(); track task.id) {
                   <gp-task-card [task]="task" (complete)="onCompleteTask($event)" (cardClick)="goToTask($event)" />
                 }
-                @if (todayTasks().length === 0) {
-                  <p class="empty-state">No tasks for today. <a (click)="goToTasks()">Add some →</a></p>
+                @if (todayTasks().length === 0 && !loading()) {
+                  <p class="empty-state">No active tasks yet. <a (click)="goToTasks()">Add some →</a></p>
                 }
               </div>
             </div>
@@ -122,7 +115,7 @@ const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
             </div>
             <p class="xp-delta">
               @if (weekXpDelta() > 0) { ↑ {{ weekXpDelta() }}% vs last week }
-              @else { — No data yet }
+              @else { — Weekly XP endpoint not connected yet }
             </p>
             <div class="xp-chart">
               @for (bar of weekBars(); track $index) {
@@ -144,15 +137,10 @@ const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
             </div>
           </div>
 
-          <!-- Timeline -->
+          <!-- Recent activity placeholder -->
           <div class="card">
             <p class="card-label">Recent activity</p>
-            @for (event of timelineService.events().slice(0, 4); track event.id) {
-              <gp-timeline-dot [event]="event" />
-            }
-            @if (timelineService.events().length === 0) {
-              <p class="empty-state">Complete your first task to start building history.</p>
-            }
+            <p class="empty-state">Timeline is not connected to the backend yet. It will be restored after the real dashboard data is stable.</p>
           </div>
 
         </div>
@@ -163,16 +151,14 @@ const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
           <!-- Streak -->
           <div class="card">
             <p class="card-label">Streak</p>
-            @if (profile(); as p) {
-              <div class="streak-row">
-                <div class="streak-num mono">{{ p.currentStreak }}</div>
-                <div class="streak-meta">
-                  <span class="streak-label">days in a row</span>
-                  <span class="streak-best mono">Best: {{ p.bestStreak }}d</span>
-                </div>
+            <div class="streak-row">
+              <div class="streak-num mono">{{ currentStreak() }}</div>
+              <div class="streak-meta">
+                <span class="streak-label">days in a row</span>
+                <span class="streak-best mono">Best: {{ bestStreak() }}d</span>
               </div>
-              <gp-streak-calendar [days]="streakDays()" style="margin-top: 12px;" />
-            }
+            </div>
+            <gp-streak-calendar [days]="streakDays()" style="margin-top: 12px;" />
           </div>
 
           <!-- Radar -->
@@ -187,9 +173,7 @@ const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
           <div class="card">
             <div class="card-header">
               <p class="card-label">Rewards</p>
-              @if (profile(); as p) {
-                <span class="cp-inline mono">🪙 {{ p.corePoints | number }}</span>
-              }
+              <span class="cp-inline mono">🪙 {{ corePoints() | number }}</span>
             </div>
             <div class="rewards-preview">
               @for (r of rewardService.rewards().slice(0,3); track r.id) {
@@ -200,8 +184,8 @@ const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
                   </span>
                 </div>
               }
-              @if (rewardService.rewards().length === 0) {
-                <p class="empty-state">No rewards yet. <a (click)="router.navigate(['/rewards'])">Create one →</a></p>
+              @if (rewardService.rewards().length === 0 && !loading()) {
+                <p class="empty-state">No rewards available yet.</p>
               }
             </div>
           </div>
@@ -331,6 +315,8 @@ const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
     /* ── MISC ── */
     .empty-state { font-size: 12px; color: var(--text-dim); padding: 6px 0; }
+    .dashboard-state { padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-muted); font-size: 13px; }
+    .dashboard-state--error { color: var(--danger, #ef4444); border-color: rgba(239,68,68,0.25); }
     .empty-state a { color: var(--primary); cursor: pointer; }
 
     @media (max-width: 800px) {
@@ -342,30 +328,45 @@ const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
   `]
 })
 export class DashboardComponent implements OnInit {
-  readonly profileService  = inject(UserProfileService);
-  readonly taskService     = inject(TaskService);
-  readonly alertService    = inject(AlertService);
-  readonly timelineService = inject(TimelineService);
-  readonly rewardService   = inject(RewardService);
-  readonly router          = inject(Router);
+  readonly profileService = inject(UserProfileService);
+  readonly progressionService = inject(ProgressionService);
+  readonly dailyProgressService = inject(DailyProgressService);
+  readonly taskService = inject(TaskService);
+  readonly rewardService = inject(RewardService);
+  readonly router = inject(Router);
 
-  readonly profile      = this.profileService.profile;
-  readonly todayTasks   = this.taskService.todayTasks;
-  readonly dayLabels    = DAY_LABELS;
+  readonly profile = this.profileService.profile;
+  readonly progression = this.progressionService.summary;
+  readonly dailyProgress = this.dailyProgressService.today;
+  readonly todayTasks = this.taskService.todayTasks;
+  readonly dayLabels = DAY_LABELS;
 
-  readonly criticalAlerts = computed(() =>
-    this.alertService.activeAlerts().filter(a => a.severity !== 'INFO').slice(0, 2)
+  readonly loading = signal(false);
+  readonly errorMessage = signal<string | null>(null);
+
+  readonly dailyGoal = computed(() =>
+    this.dailyProgress()?.requiredTaskCount ?? this.profile()?.dailyTaskGoal ?? 5
   );
 
-  readonly dailyGoal = computed(() => this.profile()?.dailyTaskGoal ?? 5);
+  readonly completedTodayCount = computed(() =>
+    this.dailyProgress()?.completedValidTaskCount ?? this.taskService.completedTodayCount()
+  );
+
+  readonly totalXp = computed(() => this.progression()?.totalXp ?? this.profile()?.totalXp ?? 0);
+  readonly level = computed(() => this.progression()?.level ?? this.profile()?.level ?? 1);
+  readonly corePoints = computed(() => this.progression()?.corePoints ?? this.profile()?.corePoints ?? 0);
+  readonly currentStreak = computed(() => this.progression()?.currentStreak ?? this.profile()?.currentStreak ?? 0);
+  readonly bestStreak = computed(() => this.progression()?.bestStreak ?? this.profile()?.bestStreak ?? 0);
+  readonly xpForNextLevel = computed(() => this.progression()?.xpForNextLevel ?? this.totalXp() + 100);
+  readonly xpProgressFraction = this.progressionService.xpProgressFraction;
 
   readonly avatarInitials = computed(() => {
-    const name = this.profile()?.displayName ?? '';
-    return name.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2);
+    const name = this.profile()?.displayName ?? this.profile()?.username ?? '';
+    return name.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2) || 'GP';
   });
 
   readonly streakDays = computed<StreakDay[]>(() => {
-    const streak = this.profile()?.currentStreak ?? 0;
+    const streak = this.currentStreak();
     const todayIdx = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
     return DAY_LABELS.map((label, i) => ({
       label,
@@ -374,29 +375,27 @@ export class DashboardComponent implements OnInit {
     }));
   });
 
-  // Placeholder radar data — replace with real category completion stats
+  // Placeholder radar data — backend category stats are not available yet.
   readonly radarAxes = signal<RadarAxis[]>([
-    { label: 'Health',   value: 75 },
-    { label: 'Work',     value: 60 },
-    { label: 'Learning', value: 85 },
-    { label: 'Finance',  value: 40 },
-    { label: 'Personal', value: 55 },
-    { label: 'Other',    value: 30 },
+    { label: 'Mind', value: 0 },
+    { label: 'Body', value: 0 },
+    { label: 'Work', value: 0 },
+    { label: 'Personal', value: 0 }
   ]);
 
-  // Placeholder week data — replace with real API call
+  // Placeholder week data — backend weekly XP endpoint is not available yet.
   readonly weekBars = signal([
-    { pct: 42, xp: 210, today: false },
-    { pct: 68, xp: 340, today: false },
-    { pct: 30, xp: 150, today: false },
-    { pct: 85, xp: 425, today: false },
-    { pct: 55, xp: 275, today: false },
-    { pct: 72, xp: 360, today: true  },
-    { pct: 0,  xp: 0,   today: false },
+    { pct: 0, xp: 0, today: false },
+    { pct: 0, xp: 0, today: false },
+    { pct: 0, xp: 0, today: false },
+    { pct: 0, xp: 0, today: false },
+    { pct: 0, xp: 0, today: false },
+    { pct: 0, xp: 0, today: false },
+    { pct: 0, xp: 0, today: false }
   ]);
 
-  readonly weekXp      = signal(480);
-  readonly weekXpDelta = signal(12);
+  readonly weekXp = signal(0);
+  readonly weekXpDelta = signal(0);
 
   readonly todayIndex = computed(() => {
     const d = new Date().getDay();
@@ -404,19 +403,35 @@ export class DashboardComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.taskService.loadTodayTasks().subscribe();
-    this.alertService.loadAlerts().subscribe();
-    this.timelineService.loadRecent(5).subscribe();
-    this.rewardService.loadRewards().subscribe();
+    this.loadDashboardData();
   }
 
   onCompleteTask(task: Task): void {
-    this.taskService.completeTask(task.id).subscribe(() => {
-      this.profileService.refreshProfile().subscribe();
-      this.timelineService.loadRecent(5).subscribe();
+    this.taskService.completeTask(task.id).subscribe({
+      next: () => this.loadDashboardData(),
+      error: () => this.errorMessage.set('The task could not be completed. Please try again.')
     });
   }
 
-  goToTasks(): void  { this.router.navigate(['/tasks']); }
+  goToTasks(): void { this.router.navigate(['/tasks']); }
   goToTask(task: Task): void { this.router.navigate(['/tasks', task.id]); }
+
+  private loadDashboardData(): void {
+    this.loading.set(true);
+    this.errorMessage.set(null);
+
+    forkJoin({
+      profile: this.profileService.loadProfile(),
+      progression: this.progressionService.loadSummary(),
+      dailyProgress: this.dailyProgressService.loadToday(),
+      tasks: this.taskService.loadTodayTasks(),
+      rewards: this.rewardService.loadRewards()
+    }).subscribe({
+      next: () => this.loading.set(false),
+      error: () => {
+        this.loading.set(false);
+        this.errorMessage.set('Dashboard data could not be loaded from the backend.');
+      }
+    });
+  }
 }
