@@ -1,0 +1,63 @@
+    <div class="auth-page">
+      <div class="auth-card">
+        <div class="auth-card__logo">
+          <div class="logo-box"><div class="logo-icon"></div></div>
+          <h1 class="auth-card__brand">Grind Protocol</h1>
+        </div>
+
+        <h2 class="auth-card__title">Begin your grind</h2>
+        <p class="auth-card__sub">Create your account and start building discipline</p>
+
+        @if (error()) {
+          <div class="auth-card__error">{{ error() }}</div>
+        }
+
+        <div class="auth-form">
+          <div class="form-field">
+            <label class="form-label">Username</label>
+            <input
+              type="text"
+              placeholder="your_username"
+              [(ngModel)]="username"
+              autocomplete="username"
+              [disabled]="loading()"
+            />
+          </div>
+
+          <div class="form-field">
+            <label class="form-label">Email</label>
+            <input
+              type="email"
+              placeholder="you@example.com"
+              [(ngModel)]="email"
+              autocomplete="email"
+              [disabled]="loading()"
+            />
+          </div>
+
+          <div class="form-field">
+            <label class="form-label">Password</label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              [(ngModel)]="password"
+              autocomplete="new-password"
+              [disabled]="loading()"
+              (keyup.enter)="submit()"
+            />
+          </div>
+
+          <button
+            class="btn btn-primary auth-submit"
+            [disabled]="loading()"
+            (click)="submit()"
+          >
+            {{ loading() ? 'Creating account...' : 'Create account' }}
+          </button>
+        </div>
+
+        <p class="auth-card__footer">
+          Already grinding? <a routerLink="/auth/login">Log in</a>
+        </p>
+      </div>
+    </div>
