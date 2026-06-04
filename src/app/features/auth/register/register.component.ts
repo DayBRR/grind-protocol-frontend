@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { finalize } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
@@ -25,12 +26,24 @@ import { AuthService } from '../../../core/auth/auth.service';
         <div class="auth-form">
           <div class="form-field">
             <label class="form-label">Username</label>
-            <input type="text" placeholder="your_username" [(ngModel)]="username" autocomplete="username" />
+            <input
+              type="text"
+              placeholder="your_username"
+              [(ngModel)]="username"
+              autocomplete="username"
+              [disabled]="loading()"
+            />
           </div>
 
           <div class="form-field">
             <label class="form-label">Email</label>
-            <input type="email" placeholder="you@example.com" [(ngModel)]="email" autocomplete="email" />
+            <input
+              type="email"
+              placeholder="you@example.com"
+              [(ngModel)]="email"
+              autocomplete="email"
+              [disabled]="loading()"
+            />
           </div>
 
           <div class="form-field">
@@ -40,6 +53,7 @@ import { AuthService } from '../../../core/auth/auth.service';
               placeholder="••••••••"
               [(ngModel)]="password"
               autocomplete="new-password"
+              [disabled]="loading()"
               (keyup.enter)="submit()"
             />
           </div>
@@ -176,19 +190,34 @@ export class RegisterComponent {
   error    = signal<string | null>(null);
 
   submit(): void {
-    if (!this.username || !this.email || !this.password) {
+    if (this.loading()) {
+      return;
+    }
+
+    const username = this.username.trim();
+    const email = this.email.trim();
+    const password = this.password;
+
+    if (!username || !email || !password) {
       this.error.set('Please fill in all fields.');
       return;
     }
+
     this.loading.set(true);
     this.error.set(null);
 
-    this.auth.register({ username: this.username, email: this.email, password: this.password }).subscribe({
-      next:  () => this.router.navigate(['/dashboard']),
-      error: err => {
-        this.error.set(err?.error?.message ?? 'Registration failed. Please try again.');
-        this.loading.set(false);
-      }
+    this.auth.register({ username, email, password }).pipe(
+      finalize(() => this.loading.set(false))
+    ).subscribe({
+      next: () => this.router.navigate(['/dashboard']),
+      error: err => this.error.set(this.resolveErrorMessage(err, 'Registration failed. Please try again.'))
     });
+  }
+
+  private resolveErrorMessage(err: any, fallback: string): string {
+    return err?.error?.message
+      ?? err?.error?.detail
+      ?? err?.error?.error
+      ?? fallback;
   }
 }

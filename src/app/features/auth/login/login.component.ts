@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { finalize } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
@@ -31,6 +32,8 @@ import { AuthService } from '../../../core/auth/auth.service';
               placeholder="your_username"
               [(ngModel)]="username"
               autocomplete="username"
+              [disabled]="loading()"
+              (keyup.enter)="submit()"
             />
           </div>
 
@@ -41,6 +44,7 @@ import { AuthService } from '../../../core/auth/auth.service';
               placeholder="••••••••"
               [(ngModel)]="password"
               autocomplete="current-password"
+              [disabled]="loading()"
               (keyup.enter)="submit()"
             />
           </div>
@@ -192,7 +196,33 @@ export class LoginComponent {
   error    = signal<string | null>(null);
 
   submit(): void {
-    // DEV BYPASS — remove when backend is connected
-    this.router.navigate(['/dashboard']);
+    if (this.loading()) {
+      return;
+    }
+
+    const username = this.username.trim();
+    const password = this.password;
+
+    if (!username || !password) {
+      this.error.set('Please enter your username and password.');
+      return;
+    }
+
+    this.loading.set(true);
+    this.error.set(null);
+
+    this.auth.login({ username, password }).pipe(
+      finalize(() => this.loading.set(false))
+    ).subscribe({
+      next: () => this.router.navigate(['/dashboard']),
+      error: err => this.error.set(this.resolveErrorMessage(err, 'Login failed. Please check your credentials.'))
+    });
+  }
+
+  private resolveErrorMessage(err: any, fallback: string): string {
+    return err?.error?.message
+      ?? err?.error?.detail
+      ?? err?.error?.error
+      ?? fallback;
   }
 }
