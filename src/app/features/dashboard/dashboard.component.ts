@@ -8,6 +8,8 @@ import { ProgressionService } from '../../core/http/progression.service';
 import { DailyProgressService } from '../../core/http/daily-progress.service';
 import { TaskService } from '../../core/http/task.service';
 import { RewardService } from '../../core/http/reward.service';
+import { AchievementService } from '../../core/http/achievement.service';
+import { QuestService } from '../../core/http/quest.service';
 
 import { XpProgressBarComponent } from '../../shared/components/xp-progress-bar/xp-progress-bar.component';
 import { DailyRingComponent } from '../../shared/components/daily-ring/daily-ring.component';
@@ -16,7 +18,7 @@ import { TaskCardComponent } from '../../shared/components/task-card/task-card.c
 import { LevelBadgeComponent } from '../../shared/components/level-badge/level-badge.component';
 import { RadarChartComponent, RadarAxis } from '../../shared/components/radar-chart/radar-chart.component';
 
-import { Task } from '../../core/models/domain.models';
+import { AchievementResponse, QuestResponse, Task } from '../../core/models/domain.models';
 
 const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
@@ -190,6 +192,67 @@ const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
             </div>
           </div>
 
+          <!-- Quests -->
+          <div class="card">
+            <div class="card-header">
+              <p class="card-label">Quests</p>
+              <span class="mini-counter mono">{{ questService.claimableQuests().length }} claimable</span>
+            </div>
+            <div class="progress-list">
+              @for (quest of questService.dashboardQuests().slice(0, 3); track quest.questId) {
+                <div class="progress-row" [class.progress-row--claimable]="quest.status === 'COMPLETED'">
+                  <div class="progress-row__main">
+                    <div class="progress-row__title">{{ quest.name }}</div>
+                    <div class="progress-row__meta mono">
+                      {{ quest.progressValue }} / {{ quest.targetValue }} · +{{ quest.xpReward }} XP · +{{ quest.corePointsReward }} CP
+                    </div>
+                    <div class="progress-line">
+                      <div class="progress-line__bar" [style.width.%]="questProgress(quest)"></div>
+                    </div>
+                  </div>
+                  @if (quest.status === 'COMPLETED') {
+                    <button type="button" class="claim-btn" (click)="onClaimQuest(quest)">Claim</button>
+                  }
+                </div>
+              }
+              @if (questService.dashboardQuests().length === 0 && !loading()) {
+                <p class="empty-state">No active quests available yet.</p>
+              }
+            </div>
+          </div>
+
+          <!-- Achievements -->
+          <div class="card">
+            <div class="card-header">
+              <p class="card-label">Achievements</p>
+              <span class="mini-counter mono">{{ achievementService.claimableAchievements().length }} claimable</span>
+            </div>
+            <div class="progress-list">
+              @for (achievement of achievementService.dashboardAchievements().slice(0, 3); track achievement.achievementId) {
+                <div class="progress-row" [class.progress-row--claimable]="achievement.unlocked && !achievement.claimed">
+                  <div class="progress-row__main">
+                    <div class="progress-row__title">{{ achievement.name }}</div>
+                    <div class="progress-row__meta mono">
+                      {{ achievement.progressValue }} / {{ achievement.targetValue }} · +{{ achievement.xpReward }} XP · +{{ achievement.corePointsReward }} CP
+                    </div>
+                    <div class="progress-line">
+                      <div class="progress-line__bar" [style.width.%]="achievementProgress(achievement)"></div>
+                    </div>
+                  </div>
+                  @if (achievement.unlocked && !achievement.claimed) {
+                    <button type="button" class="claim-btn" (click)="onClaimAchievement(achievement)">Claim</button>
+                  }
+                  @if (achievement.claimed) {
+                    <span class="claimed-pill">✓</span>
+                  }
+                </div>
+              }
+              @if (achievementService.dashboardAchievements().length === 0 && !loading()) {
+                <p class="empty-state">No achievements visible yet.</p>
+              }
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -313,6 +376,28 @@ const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
     .reward-row__cost { font-size: 11px; color: var(--text-dim); }
     .reward-row__cost--ok { color: var(--success); }
 
+    /* ── QUESTS / ACHIEVEMENTS ── */
+    .mini-counter { font-size: 10px; color: var(--text-dim); }
+    .progress-list { display: flex; flex-direction: column; gap: 8px; }
+    .progress-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: var(--bg-elevated);
+    }
+    .progress-row--claimable { border-color: rgba(34,197,94,0.25); background: rgba(34,197,94,0.05); }
+    .progress-row__main { flex: 1; min-width: 0; }
+    .progress-row__title { font-size: 12px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .progress-row__meta { margin-top: 2px; font-size: 9px; color: var(--text-dim); }
+    .progress-line { margin-top: 6px; height: 4px; border-radius: 999px; background: var(--bg-input); overflow: hidden; }
+    .progress-line__bar { height: 100%; border-radius: inherit; background: var(--primary); transition: width 0.25s ease; }
+    .claim-btn {
+      border: 1px solid rgba(34,197,94,0.35); background: rgba(34,197,94,0.08);
+      color: var(--success); border-radius: 999px; padding: 4px 8px;
+      font-size: 10px; font-weight: 800; cursor: pointer;
+    }
+    .claim-btn:hover { background: rgba(34,197,94,0.14); }
+    .claimed-pill { font-size: 12px; color: var(--success); font-weight: 800; }
+
     /* ── MISC ── */
     .empty-state { font-size: 12px; color: var(--text-dim); padding: 6px 0; }
     .dashboard-state { padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-muted); font-size: 13px; }
@@ -333,6 +418,8 @@ export class DashboardComponent implements OnInit {
   readonly dailyProgressService = inject(DailyProgressService);
   readonly taskService = inject(TaskService);
   readonly rewardService = inject(RewardService);
+  readonly achievementService = inject(AchievementService);
+  readonly questService = inject(QuestService);
   readonly router = inject(Router);
 
   readonly profile = this.profileService.profile;
@@ -413,6 +500,28 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  onClaimAchievement(achievement: AchievementResponse): void {
+    this.achievementService.claimAchievement(achievement.achievementId).subscribe({
+      next: () => this.loadDashboardData(),
+      error: () => this.errorMessage.set('The achievement could not be claimed. Please try again.')
+    });
+  }
+
+  onClaimQuest(quest: QuestResponse): void {
+    this.questService.claimQuest(quest.questId).subscribe({
+      next: () => this.loadDashboardData(),
+      error: () => this.errorMessage.set('The quest could not be claimed. Please try again.')
+    });
+  }
+
+  achievementProgress(achievement: AchievementResponse): number {
+    return this.achievementService.progressPercent(achievement);
+  }
+
+  questProgress(quest: QuestResponse): number {
+    return this.questService.progressPercent(quest);
+  }
+
   goToTasks(): void { this.router.navigate(['/tasks']); }
   goToTask(task: Task): void { this.router.navigate(['/tasks', task.id]); }
 
@@ -425,7 +534,9 @@ export class DashboardComponent implements OnInit {
       progression: this.progressionService.loadSummary(),
       dailyProgress: this.dailyProgressService.loadToday(),
       tasks: this.taskService.loadTodayTasks(),
-      rewards: this.rewardService.loadRewards()
+      rewards: this.rewardService.loadRewards(),
+      achievements: this.achievementService.loadAchievements(),
+      quests: this.questService.loadQuests()
     }).subscribe({
       next: () => this.loading.set(false),
       error: () => {
