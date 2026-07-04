@@ -70,6 +70,7 @@ export type UserProfile = UserProfileView;
 export type BackendTaskType = 'DAILY' | 'HABIT' | 'ONE_TIME';
 export type BackendTaskDifficulty = 'EASY' | 'MEDIUM' | 'HARD' | 'EPIC';
 export type BackendTaskCategory = 'MIND' | 'BODY' | 'WORK' | 'PERSONAL';
+export type CategoryFocusPeriod = 'DAY' | 'WEEK' | 'MONTH' | 'ALL_TIME';
 
 // Legacy UI values are temporarily kept so existing task screens keep compiling.
 // Services map these values to backend-native values before POSTing.
@@ -150,6 +151,21 @@ export interface TaskView extends Omit<TaskResponse, 'category' | 'difficulty' |
 // Backwards-compatible aliases used by existing components.
 export type Task = TaskView;
 export type TaskCompletion = TaskCompletionResponse;
+
+export interface CategoryFocusItemResponse {
+  category: BackendTaskCategory;
+  completedTasks: number;
+  xpEarned: number;
+  corePointsEarned: number;
+  percentage: number;
+}
+
+export interface CategoryFocusResponse {
+  period: CategoryFocusPeriod;
+  startDate: string | null;
+  endDate: string | null;
+  categories: CategoryFocusItemResponse[];
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Rewards

@@ -2,6 +2,8 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, forkJoin, map, tap } from 'rxjs';
 import { ApiService } from './api.service';
 import {
+  CategoryFocusPeriod,
+  CategoryFocusResponse,
   CreateTaskCompletionRequest,
   CreateTaskRequest,
   DailyProgress,
@@ -26,11 +28,13 @@ export class TaskService {
   private readonly _dailyProgress = signal<DailyProgress | null>(null);
   private readonly _allTasks = signal<Task[]>([]);
   private readonly _todayCompletions = signal<TaskCompletion[]>([]);
+  private readonly _categoryFocus = signal<CategoryFocusResponse | null>(null);
 
   readonly todayTasks = this._todayTasks.asReadonly();
   readonly dailyProgress = this._dailyProgress.asReadonly();
   readonly allTasks = this._allTasks.asReadonly();
   readonly todayCompletions = this._todayCompletions.asReadonly();
+  readonly categoryFocus = this._categoryFocus.asReadonly();
 
   readonly completedTodayCount = computed(() => {
     const progress = this._dailyProgress();
@@ -74,6 +78,12 @@ export class TaskService {
   loadDailyProgress(): Observable<DailyProgress> {
     return this.dailyProgressService.loadToday().pipe(
       tap(progress => this._dailyProgress.set(progress))
+    );
+  }
+
+  loadCategoryFocus(period: CategoryFocusPeriod = 'WEEK'): Observable<CategoryFocusResponse> {
+    return this.api.get<CategoryFocusResponse>('/me/tasks/category-focus', { period }).pipe(
+      tap(categoryFocus => this._categoryFocus.set(categoryFocus))
     );
   }
 
