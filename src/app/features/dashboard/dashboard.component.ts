@@ -18,9 +18,15 @@ import { TaskCardComponent } from '../../shared/components/task-card/task-card.c
 import { LevelBadgeComponent } from '../../shared/components/level-badge/level-badge.component';
 import { RadarChartComponent, RadarAxis } from '../../shared/components/radar-chart/radar-chart.component';
 
-import { AchievementResponse, QuestResponse, Task } from '../../core/models/domain.models';
+import { AchievementResponse, BackendTaskCategory, CategoryFocusResponse, QuestResponse, Task } from '../../core/models/domain.models';
 
 const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+const CATEGORY_RADAR_AXES: { category: BackendTaskCategory; label: string }[] = [
+  { category: 'MIND', label: 'Mind' },
+  { category: 'BODY', label: 'Body' },
+  { category: 'WORK', label: 'Work' },
+  { category: 'PERSONAL', label: 'Personal' }
+];
 
 @Component({
   selector: 'gp-dashboard',
@@ -86,13 +92,7 @@ export class DashboardComponent implements OnInit {
     }));
   });
 
-  // Placeholder radar data — backend category stats are not available yet.
-  readonly radarAxes = signal<RadarAxis[]>([
-    { label: 'Mind', value: 0 },
-    { label: 'Body', value: 0 },
-    { label: 'Work', value: 0 },
-    { label: 'Personal', value: 0 }
-  ]);
+  readonly radarAxes = signal<RadarAxis[]>(this.emptyRadarAxes());
 
   // Placeholder week data — backend weekly XP endpoint is not available yet.
   readonly weekBars = signal([
@@ -158,15 +158,32 @@ export class DashboardComponent implements OnInit {
       progression: this.progressionService.loadSummary(),
       dailyProgress: this.dailyProgressService.loadToday(),
       tasks: this.taskService.loadTodayTasks(),
+      categoryFocus: this.taskService.loadCategoryFocus('WEEK'),
       rewards: this.rewardService.loadRewards(),
       achievements: this.achievementService.loadAchievements(),
       quests: this.questService.loadQuests()
     }).subscribe({
-      next: () => this.loading.set(false),
+      next: ({ categoryFocus }) => {
+        this.radarAxes.set(this.toRadarAxes(categoryFocus));
+        this.loading.set(false);
+      },
       error: () => {
         this.loading.set(false);
         this.errorMessage.set('Dashboard data could not be loaded from the backend.');
       }
     });
+  }
+
+  private emptyRadarAxes(): RadarAxis[] {
+    return CATEGORY_RADAR_AXES.map(axis => ({ label: axis.label, value: 0 }));
+  }
+
+  private toRadarAxes(categoryFocus: CategoryFocusResponse | null | undefined): RadarAxis[] {
+    const categories = categoryFocus?.categories ?? [];
+
+    return CATEGORY_RADAR_AXES.map(axis => ({
+      label: axis.label,
+      value: categories.find(item => item.category === axis.category)?.percentage ?? 0
+    }));
   }
 }
