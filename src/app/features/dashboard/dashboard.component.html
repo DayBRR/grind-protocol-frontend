@@ -79,8 +79,10 @@
               <div class="xp-big mono">+{{ weekXp() | number }}</div>
             </div>
             <p class="xp-delta">
-              @if (weekXpDelta() > 0) { ↑ {{ weekXpDelta() }}% vs last week }
-              @else { — Weekly XP endpoint not connected yet }
+              @if (weekXpDelta() === null) { New weekly XP }
+              @else if (weekXpDelta()! > 0) { ↑ {{ weekXpDelta() }}% vs last week }
+              @else if (weekXpDelta()! < 0) { ↓ {{ weekXpDeltaAbs() }}% vs last week }
+              @else { 0% vs last week }
             </p>
             <div class="xp-chart">
               @for (bar of weekBars(); track $index) {
@@ -96,7 +98,7 @@
                       [style.height.px]="bar.pct * 0.56">
                     </div>
                   </div>
-                  <span class="xp-day" [class.xp-day--today]="$index === todayIndex()">{{ dayLabels[$index] }}</span>
+                  <span class="xp-day" [class.xp-day--today]="bar.today">{{ dayLabels[$index] }}</span>
                 </div>
               }
             </div>

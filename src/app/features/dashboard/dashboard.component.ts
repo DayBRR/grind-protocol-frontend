@@ -18,7 +18,14 @@ import { TaskCardComponent } from '../../shared/components/task-card/task-card.c
 import { LevelBadgeComponent } from '../../shared/components/level-badge/level-badge.component';
 import { RadarChartComponent, RadarAxis } from '../../shared/components/radar-chart/radar-chart.component';
 
-import { AchievementResponse, BackendTaskCategory, CategoryFocusResponse, QuestResponse, Task } from '../../core/models/domain.models';
+import {
+  AchievementResponse,
+  BackendTaskCategory,
+  CategoryFocusResponse,
+  QuestResponse,
+  Task,
+  WeeklyProgressionSummaryResponse
+} from '../../core/models/domain.models';
 
 const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 const CATEGORY_RADAR_AXES: { category: BackendTaskCategory; label: string }[] = [
@@ -27,6 +34,12 @@ const CATEGORY_RADAR_AXES: { category: BackendTaskCategory; label: string }[] = 
   { category: 'WORK', label: 'Work' },
   { category: 'PERSONAL', label: 'Personal' }
 ];
+
+interface WeekBar {
+  pct: number;
+  xp: number;
+  today: boolean;
+}
 
 @Component({
   selector: 'gp-dashboard',
@@ -94,24 +107,11 @@ export class DashboardComponent implements OnInit {
 
   readonly radarAxes = signal<RadarAxis[]>(this.emptyRadarAxes());
 
-  // Placeholder week data — backend weekly XP endpoint is not available yet.
-  readonly weekBars = signal([
-    { pct: 0, xp: 0, today: false },
-    { pct: 0, xp: 0, today: false },
-    { pct: 0, xp: 0, today: false },
-    { pct: 0, xp: 0, today: false },
-    { pct: 0, xp: 0, today: false },
-    { pct: 0, xp: 0, today: false },
-    { pct: 0, xp: 0, today: false }
-  ]);
+  readonly weekBars = signal<WeekBar[]>(this.emptyWeekBars());
 
   readonly weekXp = signal(0);
-  readonly weekXpDelta = signal(0);
-
-  readonly todayIndex = computed(() => {
-    const d = new Date().getDay();
-    return d === 0 ? 6 : d - 1;
-  });
+  readonly weekXpDelta = signal<number | null>(0);
+  readonly weekXpDeltaAbs = computed(() => Math.abs(this.weekXpDelta() ?? 0));
 
   ngOnInit(): void {
     this.loadDashboardData();
@@ -156,6 +156,7 @@ export class DashboardComponent implements OnInit {
     forkJoin({
       profile: this.profileService.loadProfile(),
       progression: this.progressionService.loadSummary(),
+      weeklySummary: this.progressionService.loadWeeklySummary(),
       dailyProgress: this.dailyProgressService.loadToday(),
       tasks: this.taskService.loadTodayTasks(),
       categoryFocus: this.taskService.loadCategoryFocus('WEEK'),
@@ -163,7 +164,8 @@ export class DashboardComponent implements OnInit {
       achievements: this.achievementService.loadAchievements(),
       quests: this.questService.loadQuests()
     }).subscribe({
-      next: ({ categoryFocus }) => {
+      next: ({ categoryFocus, weeklySummary }) => {
+        this.applyWeeklySummary(weeklySummary);
         this.radarAxes.set(this.toRadarAxes(categoryFocus));
         this.loading.set(false);
       },
@@ -178,6 +180,10 @@ export class DashboardComponent implements OnInit {
     return CATEGORY_RADAR_AXES.map(axis => ({ label: axis.label, value: 0 }));
   }
 
+  private emptyWeekBars(): WeekBar[] {
+    return DAY_LABELS.map(() => ({ pct: 0, xp: 0, today: false }));
+  }
+
   private toRadarAxes(categoryFocus: CategoryFocusResponse | null | undefined): RadarAxis[] {
     const categories = categoryFocus?.categories ?? [];
 
@@ -185,5 +191,29 @@ export class DashboardComponent implements OnInit {
       label: axis.label,
       value: categories.find(item => item.category === axis.category)?.percentage ?? 0
     }));
+  }
+
+  private applyWeeklySummary(summary: WeeklyProgressionSummaryResponse): void {
+    this.weekXp.set(summary.totalXp);
+    this.weekXpDelta.set(summary.deltaPercent);
+    this.weekBars.set(this.toWeekBars(summary));
+  }
+
+  private toWeekBars(summary: WeeklyProgressionSummaryResponse): WeekBar[] {
+    const maxXp = Math.max(...summary.days.map(day => day.xpEarned), 0);
+    const today = this.toLocalDateString(new Date());
+
+    return summary.days.map(day => ({
+      pct: maxXp > 0 ? (day.xpEarned / maxXp) * 100 : 0,
+      xp: day.xpEarned,
+      today: day.date === today
+    }));
+  }
+
+  private toLocalDateString(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }
