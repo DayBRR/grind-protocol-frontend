@@ -40,6 +40,26 @@ export interface ProgressionSummaryResponse {
   bestStreak: number;
 }
 
+export interface DailyProgressionSummaryResponse {
+  date: string;
+  dayOfWeek: string;
+  xpEarned: number;
+  corePointsEarned: number;
+  taskCompletions: number;
+  questClaims: number;
+  achievementClaims: number;
+  rewardRedemptions: number;
+}
+
+export interface WeeklyProgressionSummaryResponse {
+  weekStart: string;
+  weekEnd: string;
+  totalXp: number;
+  previousWeekTotalXp: number;
+  deltaPercent: number | null;
+  days: DailyProgressionSummaryResponse[];
+}
+
 export interface DailyProgressResponse {
   id: number;
   userId: number;
