@@ -69,7 +69,28 @@ export class DashboardComponent implements OnInit {
   readonly progression = this.progressionService.summary;
   readonly dailyProgress = this.dailyProgressService.today;
   readonly todayTasks = this.taskService.todayTasks;
-  readonly dayLabels = DAY_LABELS;
+  // Presentation only: keep the daily qualification goal independent of this list.
+  readonly objectiveTasks = computed(() => {
+    const mandatoryPending: Task[] = [];
+    const otherPending: Task[] = [];
+    const completed: Task[] = [];
+
+    for (const task of this.todayTasks()) {
+      if ((task.completedToday ?? 0) >= task.maxCompletionsPerDay) {
+        completed.push(task);
+      } else if (task.mandatory) {
+        mandatoryPending.push(task);
+      } else {
+        otherPending.push(task);
+      }
+    }
+
+    return [...mandatoryPending, ...otherPending, ...completed].slice(0, 5);
+  });
+  readonly additionalObjectiveTaskCount = computed(() =>
+    this.todayTasks().length - this.objectiveTasks().length
+  );
+  readonly dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   readonly loading = signal(false);
   readonly errorMessage = signal<string | null>(null);
@@ -112,6 +133,37 @@ export class DashboardComponent implements OnInit {
   readonly weekXp = signal(0);
   readonly weekXpDelta = signal<number | null>(0);
   readonly weekXpDeltaAbs = computed(() => Math.abs(this.weekXpDelta() ?? 0));
+
+  // Visual summaries derived from existing dashboard data.
+  readonly remainingTasks = computed(() => Math.max(0, this.dailyGoal() - this.completedTodayCount()));
+  readonly protocolStatus = computed(() => {
+    if (this.dailyProgress()?.dayQualified) return 'day qualified';
+    const remaining = this.remainingTasks();
+    return remaining > 0
+      ? `${remaining} ${remaining === 1 ? 'task' : 'tasks'} remaining`
+      : 'target reached · check mandatory tasks';
+  });
+  readonly objectiveStatus = computed(() => {
+    const remaining = this.remainingTasks();
+    if (this.dailyProgress()?.dayQualified) return 'Day qualified. Keep your momentum.';
+    return remaining > 0
+      ? 'Complete ' + remaining + ' more required ' + (remaining === 1 ? 'task' : 'tasks') + ' to qualify the day'
+      : 'Daily target reached. Check your mandatory tasks.';
+  });
+  readonly bestWeekDay = computed(() => {
+    const bars = this.weekBars();
+    const xp = Math.max(0, ...bars.map(bar => bar.xp));
+    if (xp === 0) return null;
+    return { label: bars.flatMap((bar, i) => bar.xp === xp ? [this.dayLabels[i]] : []).join(' / '), xp };
+  });
+  readonly focusSummary = computed(() => {
+    const axes = this.radarAxes();
+    const peak = Math.max(0, ...axes.map(axis => axis.value));
+    if (peak === 0) return 'Complete tasks to discover your weekly focus';
+    const leaders = axes.filter(axis => axis.value === peak);
+    return leaders.length === 1 ? leaders[0].label + ' is your main focus this week'
+      : leaders.map(axis => axis.label).join(' & ') + ' share your main focus';
+  });
 
   ngOnInit(): void {
     this.loadDashboardData();
@@ -171,7 +223,7 @@ export class DashboardComponent implements OnInit {
       },
       error: () => {
         this.loading.set(false);
-        this.errorMessage.set('Dashboard data could not be loaded from the backend.');
+        this.errorMessage.set('Could not sync your progress. Try again in a moment.');
       }
     });
   }

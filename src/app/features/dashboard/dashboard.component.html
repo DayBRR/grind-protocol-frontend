@@ -1,224 +1,234 @@
-    <div class="dashboard">
+<div class="dashboard">
+  @if (loading()) {
+    <div class="dashboard-state">Loading your grind data...</div>
+  }
 
-      @if (loading()) {
-        <div class="dashboard-state">Loading your grind data...</div>
-      }
+  @if (errorMessage()) {
+    <div class="dashboard-state dashboard-state--error">{{ errorMessage() }}</div>
+  }
 
-      @if (errorMessage()) {
-        <div class="dashboard-state dashboard-state--error">{{ errorMessage() }}</div>
-      }
+  @if (profile(); as p) {
+    <section class="hero status-panel">
+      <div class="hero__avatar">{{ avatarInitials() }}</div>
 
-      <!-- ── HERO ──────────────────────────────────────── -->
-      @if (profile(); as p) {
-        <div class="hero">
-          <div class="hero__avatar">{{ avatarInitials() }}</div>
-
-          <div class="hero__info">
-            <div class="hero__name-row">
-              <h2 class="hero__name">{{ p.displayName }}</h2>
-              <gp-level-badge [level]="level()" [title]="p.levelTitle" />
-            </div>
-            <gp-xp-progress-bar
-              [currentXp]="totalXp()"
-              [targetXp]="xpForNextLevel()"
-              [progress]="xpProgressFraction()"
-              [level]="level()"
-              style="margin-top: 8px;"
-            />
-          </div>
-
-          <div class="hero__stats">
-            <div class="stat-chip stat-chip--streak">
-              <span>🔥</span>
-              <span class="stat-val">{{ currentStreak() }}</span>
-              <span class="stat-lbl">day streak</span>
-            </div>
-            <div class="stat-chip stat-chip--points">
-              <span>🪙</span>
-              <span class="stat-val">{{ corePoints() | number }}</span>
-              <span class="stat-lbl">CP</span>
-            </div>
-            <div class="stat-chip stat-chip--xp">
-              <span>⚡</span>
-              <span class="stat-val">{{ totalXp() | number }}</span>
-              <span class="stat-lbl">XP</span>
-            </div>
-          </div>
+      <div class="hero__info">
+        <p class="hero__kicker">Player status</p>
+        <div class="hero__name-row">
+          <h2 class="hero__name">{{ p.displayName }}</h2>
+          <gp-level-badge [level]="level()" [title]="p.levelTitle" />
         </div>
-      }
-
-      <!-- ── MAIN LAYOUT ───────────────────────────────── -->
-      <div class="layout">
-
-        <!-- LEFT: contenido principal -->
-        <div class="layout__main">
-
-          <!-- Daily Progress -->
-          <div class="card">
-            <div class="card-header">
-              <p class="card-label">Today's progress</p>
-              <div class="daily-count mono">{{ completedTodayCount() }} / {{ dailyGoal() }}</div>
-            </div>
-            <div class="daily-wrap">
-              <gp-daily-ring [completed]="completedTodayCount()" [total]="dailyGoal()" />
-              <div class="daily-tasks">
-                @for (task of todayTasks(); track task.id) {
-                  <gp-task-card [task]="task" (complete)="onCompleteTask($event)" (cardClick)="goToTask($event)" />
-                }
-                @if (todayTasks().length === 0 && !loading()) {
-                  <p class="empty-state">No active tasks yet. <a (click)="goToTasks()">Add some →</a></p>
-                }
-              </div>
-            </div>
-          </div>
-
-          <!-- XP This Week -->
-          <div class="card">
-            <div class="card-header">
-              <p class="card-label">XP this week</p>
-              <div class="xp-big mono">+{{ weekXp() | number }}</div>
-            </div>
-            <p class="xp-delta">
-              @if (weekXpDelta() === null) { New weekly XP }
-              @else if (weekXpDelta()! > 0) { ↑ {{ weekXpDelta() }}% vs last week }
-              @else if (weekXpDelta()! < 0) { ↓ {{ weekXpDeltaAbs() }}% vs last week }
-              @else { 0% vs last week }
-            </p>
-            <div class="xp-chart">
-              @for (bar of weekBars(); track $index) {
-                <div class="xp-col">
-                  @if (bar.xp > 0) {
-                    <span class="xp-val">+{{ bar.xp }}</span>
-                  } @else {
-                    <span class="xp-val xp-val--empty">—</span>
-                  }
-                  <div class="xp-track">
-                    <div class="xp-bar-col"
-                      [class.xp-bar-col--today]="bar.today"
-                      [style.height.px]="bar.pct * 0.56">
-                    </div>
-                  </div>
-                  <span class="xp-day" [class.xp-day--today]="bar.today">{{ dayLabels[$index] }}</span>
-                </div>
-              }
-            </div>
-          </div>
-
-          <!-- Recent activity placeholder -->
-          <div class="card">
-            <p class="card-label">Recent activity</p>
-            <p class="empty-state">Timeline is not connected to the backend yet. It will be restored after the real dashboard data is stable.</p>
-          </div>
-
-        </div>
-
-        <!-- RIGHT: stats compactos -->
-        <div class="layout__side">
-
-          <!-- Streak -->
-          <div class="card">
-            <p class="card-label">Streak</p>
-            <div class="streak-row">
-              <div class="streak-num mono">{{ currentStreak() }}</div>
-              <div class="streak-meta">
-                <span class="streak-label">days in a row</span>
-                <span class="streak-best mono">Best: {{ bestStreak() }}d</span>
-              </div>
-            </div>
-            <gp-streak-calendar [days]="streakDays()" style="margin-top: 12px;" />
-          </div>
-
-          <!-- Radar -->
-          <div class="card">
-            <p class="card-label">Category focus</p>
-            <div class="radar-wrap">
-              <gp-radar-chart [axes]="radarAxes()" />
-            </div>
-          </div>
-
-          <!-- Rewards -->
-          <div class="card">
-            <div class="card-header">
-              <p class="card-label">Rewards</p>
-              <span class="cp-inline mono">🪙 {{ corePoints() | number }}</span>
-            </div>
-            <div class="rewards-preview">
-              @for (r of rewardService.rewards().slice(0,3); track r.id) {
-                <div class="reward-row" [class.reward-row--affordable]="r.canAfford">
-                  <span class="reward-row__name">{{ r.title }}</span>
-                  <span class="reward-row__cost mono" [class.reward-row__cost--ok]="r.canAfford">
-                    {{ r.canAfford ? '✓ ' : '' }}{{ r.costCorePoints }} CP
-                  </span>
-                </div>
-              }
-              @if (rewardService.rewards().length === 0 && !loading()) {
-                <p class="empty-state">No rewards available yet.</p>
-              }
-            </div>
-          </div>
-
-          <!-- Quests -->
-          <div class="card">
-            <div class="card-header">
-              <p class="card-label">Quests</p>
-              <span class="mini-counter mono">{{ questService.claimableQuests().length }} claimable</span>
-            </div>
-            <div class="progress-list">
-              @for (quest of questService.dashboardQuests().slice(0, 3); track quest.questId) {
-                <div class="progress-row" [class.progress-row--claimable]="quest.status === 'COMPLETED'">
-                  <div class="progress-row__main">
-                    <div class="progress-row__title">{{ quest.name }}</div>
-                    <div class="progress-row__meta mono">
-                      {{ quest.progressValue }} / {{ quest.targetValue }} · +{{ quest.xpReward }} XP · +{{ quest.corePointsReward }} CP
-                    </div>
-                    <div class="progress-line">
-                      <div class="progress-line__bar" [style.width.%]="questProgress(quest)"></div>
-                    </div>
-                  </div>
-                  @if (quest.status === 'COMPLETED') {
-                    <button type="button" class="claim-btn" (click)="onClaimQuest(quest)">Claim</button>
-                  }
-                </div>
-              }
-              @if (questService.dashboardQuests().length === 0 && !loading()) {
-                <p class="empty-state">No active quests available yet.</p>
-              }
-            </div>
-          </div>
-
-          <!-- Achievements -->
-          <div class="card">
-            <div class="card-header">
-              <p class="card-label">Achievements</p>
-              <span class="mini-counter mono">{{ achievementService.claimableAchievements().length }} claimable</span>
-            </div>
-            <div class="progress-list">
-              @for (achievement of achievementService.dashboardAchievements().slice(0, 3); track achievement.achievementId) {
-                <div class="progress-row" [class.progress-row--claimable]="achievement.unlocked && !achievement.claimed">
-                  <div class="progress-row__main">
-                    <div class="progress-row__title">{{ achievement.name }}</div>
-                    <div class="progress-row__meta mono">
-                      {{ achievement.progressValue }} / {{ achievement.targetValue }} · +{{ achievement.xpReward }} XP · +{{ achievement.corePointsReward }} CP
-                    </div>
-                    <div class="progress-line">
-                      <div class="progress-line__bar" [style.width.%]="achievementProgress(achievement)"></div>
-                    </div>
-                  </div>
-                  @if (achievement.unlocked && !achievement.claimed) {
-                    <button type="button" class="claim-btn" (click)="onClaimAchievement(achievement)">Claim</button>
-                  }
-                  @if (achievement.claimed) {
-                    <span class="claimed-pill">✓</span>
-                  }
-                </div>
-              }
-              @if (achievementService.dashboardAchievements().length === 0 && !loading()) {
-                <p class="empty-state">No achievements visible yet.</p>
-              }
-            </div>
-          </div>
-
+        <p class="hero__status">Daily protocol: {{ loading() ? 'syncing…' : protocolStatus() }}</p>
+        <div class="hero__progress">
+          <gp-xp-progress-bar
+            [currentXp]="totalXp()"
+            [targetXp]="xpForNextLevel()"
+            [progress]="xpProgressFraction()"
+            [level]="level()"
+          />
         </div>
       </div>
 
+      <div class="hero__stats">
+        <div class="stat-tile stat-tile--xp">
+          <span class="stat-lbl">Total XP</span>
+          <span class="stat-val mono">{{ totalXp() | number }}</span>
+        </div>
+        <div class="stat-tile stat-tile--streak">
+          <span class="stat-lbl">Streak</span>
+          <span class="stat-val mono">{{ currentStreak() }}</span>
+          <span class="stat-note">{{ currentStreak() === 1 ? 'day' : 'days' }}</span>
+        </div>
+        <div class="stat-tile stat-tile--points">
+          <span class="stat-lbl">Core Points</span>
+          <span class="stat-val mono">{{ corePoints() | number }}</span>
+        </div>
+      </div>
+    </section>
+  }
+
+  <main class="command-grid">
+    <div class="mission-zone">
+      <section class="card card--primary objective-card">
+        <div class="card-header">
+          <div>
+            <p class="card-label">Today's objective</p>
+            <h3 class="objective-title">Make today count.</h3>
+            <p class="card-subtitle">{{ loading() ? 'Syncing progress…' : objectiveStatus() }}</p>
+          </div>
+          <div class="daily-count mono">{{ completedTodayCount() }} / {{ dailyGoal() }}</div>
+        </div>
+        <div class="daily-wrap">
+          <gp-daily-ring [completed]="completedTodayCount()" [total]="dailyGoal()" />
+          <div class="daily-tasks">
+            @for (task of objectiveTasks(); track task.id) {
+              <gp-task-card [task]="task" (complete)="onCompleteTask($event)" (cardClick)="goToTask($event)" />
+            }
+            @if (additionalObjectiveTaskCount() > 0) {
+              <p class="stat-note">+{{ additionalObjectiveTaskCount() }} more tasks available</p>
+            }
+            @if (todayTasks().length === 0 && !loading()) {
+              <p class="empty-state">No active tasks yet. <a (click)="goToTasks()">Add some -></a></p>
+            }
+          </div>
+        </div>
+      </section>
+      <div class="rhythm-stack">
+        <section class="card card--analytics weekly-card">
+          <div class="card-header">
+            <div>
+              <p class="card-label">Weekly XP</p>
+              <p class="card-subtitle">XP earned during the current week.</p>
+            </div>
+            <div class="xp-big mono">+{{ weekXp() | number }}</div>
+          </div>
+          <p class="xp-delta">
+            @if (weekXpDelta() === null) { First progress logged this week }
+            @else if (weekXpDelta()! > 0) { ↑ {{ weekXpDelta() }}% vs last week }
+            @else if (weekXpDelta()! < 0) { ↓ {{ weekXpDeltaAbs() }}% vs last week }
+            @else { 0% vs last week }
+          </p>
+          @if (!loading()) {
+            <p class="weekly-context">
+              @if (bestWeekDay(); as best) { Best day: <strong>{{ best.label }}</strong> · +{{ best.xp | number }} XP }
+              @else { No XP yet this week. Complete a task to start your chart. }
+            </p>
+          }
+          <div class="xp-chart">
+            @for (bar of weekBars(); track $index) {
+              <div class="xp-col">
+                @if (bar.xp > 0) {
+                  <span class="xp-val">+{{ bar.xp }}</span>
+                } @else {
+                  <span class="xp-val xp-val--empty">-</span>
+                }
+                <div class="xp-track">
+                  <div
+                    class="xp-bar-col"
+                    [class.xp-bar-col--today]="bar.today"
+                    [style.height.px]="bar.pct * 0.8"
+                  ></div>
+                </div>
+                <span class="xp-day" [class.xp-day--today]="bar.today">{{ dayLabels[$index] }}</span>
+              </div>
+            }
+          </div>
+        </section>
+        <section class="card card--secondary">
+          <p class="card-label">Streak</p>
+          <div class="streak-row">
+            <div class="streak-num mono">{{ currentStreak() }}</div>
+            <div class="streak-meta">
+              <span class="streak-label">{{ currentStreak() === 1 ? 'day' : 'days' }} streak</span>
+              <span class="streak-best mono">Best: {{ bestStreak() }} {{ bestStreak() === 1 ? 'day' : 'days' }}</span>
+            </div>
+          </div>
+          <div class="streak-week"><span class="stat-note">This week</span><gp-streak-calendar [days]="streakDays()" /></div>
+        </section>
+      </div>
     </div>
+
+    <section class="card card--analytics">
+      <p class="card-label">Focus balance</p>
+      <div class="focus-body">
+        <div class="radar-wrap"><gp-radar-chart [axes]="radarAxes()" /></div>
+        <div>
+      <p class="card-subtitle">Completed tasks this week.</p>
+      <p class="focus-summary">{{ loading() ? 'Syncing focus…' : focusSummary() }}</p>
+      @if (!loading()) {
+        <div class="focus-values">
+          @for (axis of radarAxes(); track axis.label) {
+            <span>{{ axis.label }} <strong class="mono">{{ axis.value | number:'1.0-1' }}%</strong></span>
+          }
+        </div>
+      }
+        </div>
+      </div>
+    </section>
+
+    <section class="card card--secondary" style="padding-block:12px">
+      <div class="card-header" style="margin-bottom:8px">
+        <p class="card-label" style="margin-bottom:0">Rewards</p>
+        <span class="cp-inline mono">{{ corePoints() | number }} CP</span>
+      </div>
+      <div class="rewards-preview" style="gap:6px">
+        @for (r of rewardService.rewards().slice(0, 4); track r.id) {
+          <div class="reward-row" style="padding-block:8px" [class.reward-row--affordable]="r.canAfford">
+            <span class="reward-icon" aria-hidden="true">✦</span>
+            <div class="reward-row__main"><span class="reward-row__name">{{ r.title }}</span><span class="reward-status">{{ r.canAfford ? 'Affordable' : 'Save more CP' }}</span></div>
+            <span class="reward-row__cost mono" [class.reward-row__cost--ok]="r.canAfford">
+              {{ r.costCorePoints | number }} CP
+            </span>
+          </div>
+        }
+        @if (rewardService.rewards().length === 0 && !loading()) {
+          <p class="empty-state">No rewards configured yet.</p>
+        }
+      </div>
+    </section>
+
+    <section class="card card--secondary achievements-card">
+      <div class="card-header">
+        <p class="card-label">Achievements</p>
+        <span class="mini-counter mono">{{ achievementService.claimableAchievements().length }} claimable</span>
+      </div>
+      <div class="progress-list">
+        @for (achievement of achievementService.dashboardAchievements().slice(0, 3); track achievement.achievementId) {
+          <div class="progress-row achievement-row" [class.progress-row--claimable]="achievement.unlocked && !achievement.claimed">
+            <span class="achievement-icon" aria-hidden="true">{{ achievement.claimed ? '✓' : '◇' }}</span>
+            <div class="progress-row__main">
+              <div class="progress-row__title">{{ achievement.name }}</div>
+              <div class="progress-row__meta mono">
+                {{ achievement.progressValue }} / {{ achievement.targetValue }} · {{ achievement.claimed ? 'Claimed' : achievement.unlocked ? 'Unlocked' : 'In progress' }}
+              </div>
+              <div class="progress-row__meta mono">+{{ achievement.xpReward }} XP · +{{ achievement.corePointsReward }} CP
+              </div>
+              <div class="progress-line">
+                <div class="progress-line__bar" [style.width.%]="achievementProgress(achievement)"></div>
+              </div>
+            </div>
+            @if (achievement.unlocked && !achievement.claimed) {
+              <button type="button" class="claim-btn" (click)="onClaimAchievement(achievement)">Claim</button>
+            }
+            @if (achievement.claimed) {
+              <span class="claimed-pill">✓</span>
+            }
+          </div>
+        }
+        @if (achievementService.dashboardAchievements().length === 0 && !loading()) {
+          <p class="empty-state">Milestones will appear as you progress.</p>
+        }
+      </div>
+    </section>
+
+    <section class="card card--secondary" style="padding-block:12px">
+      <div class="card-header" style="margin-bottom:8px">
+        <div>
+          <p class="card-label" style="margin-bottom:0">Quests</p>
+          <p class="card-subtitle">Active missions closest to a claim.</p>
+        </div>
+        <span class="mini-counter mono">{{ questService.claimableQuests().length }} claimable</span>
+      </div>
+      <div class="progress-list" style="gap:6px">
+        @for (quest of questService.dashboardQuests().slice(0, 3); track quest.questId) {
+          <div class="progress-row" style="padding-block:8px" [class.progress-row--claimable]="quest.status === 'COMPLETED'">
+            <div class="progress-row__main">
+              <div class="progress-row__title">{{ quest.name }}</div>
+              <div class="progress-row__meta mono">
+                {{ quest.progressValue }} / {{ quest.targetValue }} · +{{ quest.xpReward }} XP · +{{ quest.corePointsReward }} CP
+              </div>
+              <div class="progress-line">
+                <div class="progress-line__bar" [style.width.%]="questProgress(quest)"></div>
+              </div>
+            </div>
+            @if (quest.status === 'COMPLETED') {
+              <button type="button" class="claim-btn" (click)="onClaimQuest(quest)">Claim</button>
+            }
+          </div>
+        }
+        @if (questService.dashboardQuests().length === 0 && !loading()) {
+          <p class="empty-state">No active quests right now. Complete tasks to unlock more progress.</p>
+        }
+      </div>
+    </section>
+  </main>
+</div>
