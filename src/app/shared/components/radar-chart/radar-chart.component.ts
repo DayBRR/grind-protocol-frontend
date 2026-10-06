@@ -17,10 +17,11 @@ export interface RadarAxis {
 @Component({
   selector: 'gp-radar-chart',
   standalone: true,
-  template: `<canvas #canvas></canvas>`,
+  template: `<div class="chart-container"><canvas #canvas></canvas></div>`,
   styles: [`
     :host { display: block; width: 200px; height: 200px; flex-shrink: 0; }
-    canvas { display: block; width: 100% !important; height: 100% !important; }
+    .chart-container { position: relative; width: 100%; height: 100%; }
+    canvas { display: block; }
   `]
 })
 export class RadarChartComponent implements AfterViewInit, OnChanges, OnDestroy {
@@ -62,7 +63,7 @@ export class RadarChartComponent implements AfterViewInit, OnChanges, OnDestroy 
       },
       options: {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
         animation: { duration: 600, easing: 'easeInOutQuart' },
         plugins: { legend: { display: false }, tooltip: { enabled: false } },
         scales: {
