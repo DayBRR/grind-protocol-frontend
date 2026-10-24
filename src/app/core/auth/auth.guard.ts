@@ -13,9 +13,10 @@ export const authGuard: CanActivateFn = () => {
 
   return auth.refresh().pipe(
     map(() => true),
-    catchError(() => {
-      auth.clearSession();
-      return of(router.createUrlTree(['/auth/login']));
+    catchError(error => {
+      return of(auth.isDefinitiveRefreshError(error) && !auth.accessToken()
+        ? router.createUrlTree(['/auth/login'])
+        : false);
     })
   );
 };

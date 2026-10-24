@@ -1,10 +1,12 @@
 import { HttpErrorResponse, HttpInterceptorFn, HttpStatusCode } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { catchError, switchMap, throwError } from 'rxjs';
+import { catchError, Observable, of, switchMap, throwError } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
+import { AuthResponse } from '../models/auth.models';
 
 export const refreshInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthService);
+  const sentAuthorization = req.headers.get('Authorization');
 
   return next(req).pipe(
     catchError((error: unknown) => {
@@ -16,12 +18,19 @@ export const refreshInterceptor: HttpInterceptorFn = (req, next) => {
         return throwError(() => error);
       }
 
-      return auth.refresh().pipe(
+      const currentToken = auth.accessToken();
+      // A cleared session must not be restored by late failures from old requests.
+      if (!currentToken || !sentAuthorization) return throwError(() => error);
+
+      const renewal: Observable<AuthResponse | null> = sentAuthorization !== `Bearer ${currentToken}`
+        ? of(null)
+        : auth.refresh();
+
+      return renewal.pipe(
         switchMap(() => {
           const token = auth.accessToken();
 
           if (!token) {
-            auth.clearSessionAndRedirect();
             return throwError(() => error);
           }
 
@@ -32,10 +41,6 @@ export const refreshInterceptor: HttpInterceptorFn = (req, next) => {
               }
             })
           );
-        }),
-        catchError(refreshError => {
-          auth.clearSessionAndRedirect();
-          return throwError(() => refreshError);
         })
       );
     })
