@@ -25,6 +25,8 @@
       <p class="empty__title">Loading rewards...</p>
       <p class="empty__sub">Fetching your reward store from the backend.</p>
     </div>
+  } @else if (loadFailed()) {
+    <button class="btn btn-ghost" (click)="loadStore()">Retry loading rewards</button>
   } @else {
     @if (rewards().length === 0) {
       <div class="empty">

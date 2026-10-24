@@ -47,6 +47,7 @@ export class RewardStoreComponent implements OnInit {
 
   readonly loading = signal(false);
   readonly redeeming = signal(false);
+  readonly loadFailed = signal(false);
   readonly error = signal<string | null>(null);
   readonly claimTarget = signal<Reward | null>(null);
 
@@ -64,6 +65,7 @@ export class RewardStoreComponent implements OnInit {
 
   loadStore(): void {
     this.loading.set(true);
+    this.loadFailed.set(false);
     this.error.set(null);
 
     forkJoin({
@@ -73,7 +75,10 @@ export class RewardStoreComponent implements OnInit {
     }).pipe(
       finalize(() => this.loading.set(false))
     ).subscribe({
-      error: err => this.error.set(this.errorMessage(err, 'Unable to load reward store.'))
+      error: err => {
+        this.loadFailed.set(true);
+        this.error.set(this.errorMessage(err, 'Unable to load reward store.'));
+      }
     });
   }
 
@@ -82,7 +87,7 @@ export class RewardStoreComponent implements OnInit {
   }
 
   onClaim(reward: Reward): void {
-    if (!reward.canAfford || reward.isOnCooldown || !reward.enabled) {
+    if (this.loading() || this.loadFailed() || !this.rewards().find(item => item.id === reward.id)?.canRedeem) {
       return;
     }
 
@@ -92,7 +97,8 @@ export class RewardStoreComponent implements OnInit {
   confirmClaim(): void {
     const reward = this.claimTarget();
 
-    if (!reward) {
+    if (!reward || this.loading() || this.loadFailed() || this.redeeming()
+      || !this.rewards().find(item => item.id === reward.id)?.canRedeem) {
       return;
     }
 
@@ -106,7 +112,10 @@ export class RewardStoreComponent implements OnInit {
       })
     ).subscribe({
       next: () => this.loadStore(),
-      error: err => this.error.set(this.errorMessage(err, 'Unable to redeem reward.'))
+      error: err => {
+        this.loadFailed.set(true);
+        this.error.set(this.errorMessage(err, 'Unable to redeem reward.'));
+      }
     });
   }
 
