@@ -14,27 +14,7 @@ export class RewardCardComponent {
   @Output() claim = new EventEmitter<Reward>();
 
   get lockedReason(): string | null {
-    if (!this.reward.enabled) {
-      return 'Unavailable';
-    }
-
-    if (this.reward.requiredLevel && this.reward.requiredLevel > 0) {
-      return `Level ${this.reward.requiredLevel}+`;
-    }
-
-    if (this.reward.requiredCurrentStreak && this.reward.requiredCurrentStreak > 0) {
-      return `${this.reward.requiredCurrentStreak} day streak`;
-    }
-
-    if (!this.reward.canAfford) {
-      return 'Not enough CP';
-    }
-
-    if (this.reward.isOnCooldown) {
-      return 'Cooldown';
-    }
-
-    return null;
+    return this.reward.lockedReason;
   }
 
   onClaim(): void {

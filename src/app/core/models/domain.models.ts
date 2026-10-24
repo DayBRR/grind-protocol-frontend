@@ -238,6 +238,8 @@ export interface RewardRedemptionResponse {
 }
 
 export interface RewardView extends RewardResponse {
+  canRedeem: boolean;
+  lockedReason: string | null;
   // UI aliases/helpers used by existing cards while keeping backend fields intact.
   title: string;
   active: boolean;
