@@ -38,7 +38,7 @@
         </div>
         <div class="detail-stat">
           <span class="detail-stat__label">Core Points preview</span>
-          <span class="detail-stat__val mono text-gold">{{ t.baseXp / 10 | number:'1.0-0' }}</span>
+          <span class="detail-stat__val mono text-gold">{{ rewardPreview()?.corePoints ?? 'Unavailable' }}</span>
         </div>
         <div class="detail-stat">
           <span class="detail-stat__label">Completed today</span>
@@ -53,15 +53,15 @@
       <button
         class="btn btn-primary complete-btn"
         type="button"
-        [disabled]="!t.canCompleteToday || completing()"
+        [disabled]="!rewardPreview() || completing()"
         (click)="onComplete(t)"
       >
         @if (completing()) {
           Completing...
-        } @else if (!t.canCompleteToday) {
+        } @else if (!rewardPreview()) {
           ✓ Completed for today
         } @else {
-          Complete Task → +{{ t.baseXp }} XP
+          Complete Task → +{{ rewardPreview()?.xp }} XP
         }
       </button>
 

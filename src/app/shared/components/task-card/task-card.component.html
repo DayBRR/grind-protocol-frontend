@@ -31,6 +31,8 @@
       <span class="badge badge--req">REQ</span>
     }
     <span class="badge badge--diff" [style.color]="difficultyColor">{{ task.difficulty }}</span>
-    <span class="badge badge--xp mono">+{{ task.baseXp }} XP</span>
+    @if (rewardPreview; as reward) {
+      <span class="badge badge--xp mono">+{{ reward.xp }} XP</span>
+    }
   </div>
 </div>
