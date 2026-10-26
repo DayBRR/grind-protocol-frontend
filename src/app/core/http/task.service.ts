@@ -99,7 +99,7 @@ export class TaskService {
         this._todayTasks.update(tasks =>
           this.mergeCompletions(
             tasks,
-            [...this._todayCompletions(), completion]
+            this._todayCompletions()
           )
         );
       })

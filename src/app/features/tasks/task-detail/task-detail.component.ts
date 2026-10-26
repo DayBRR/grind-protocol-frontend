@@ -1,15 +1,16 @@
-import { DecimalPipe, LowerCasePipe } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { LowerCasePipe } from '@angular/common';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { finalize, forkJoin, switchMap } from 'rxjs';
+import { finalize, forkJoin, switchMap, tap } from 'rxjs';
 import { TaskService } from '../../../core/http/task.service';
 import { UserProfileService } from '../../../core/auth/user-profile.service';
+import { nextTaskReward } from '../../../core/models/task-reward-preview';
 import { Task } from '../../../core/models/domain.models';
 
 @Component({
   selector: 'gp-task-detail',
   standalone: true,
-  imports: [LowerCasePipe, DecimalPipe],
+  imports: [LowerCasePipe],
   templateUrl: './task-detail.component.html',
   styleUrls: ['./task-detail.component.scss']
 })
@@ -20,6 +21,10 @@ export class TaskDetailComponent implements OnInit {
   readonly router = inject(Router);
 
   readonly task = signal<Task | null>(null);
+  readonly rewardPreview = computed(() => {
+    const task = this.task();
+    return task ? nextTaskReward(task) : null;
+  });
   readonly loading = signal(false);
   readonly completing = signal(false);
   readonly errorMessage = signal<string | null>(null);
@@ -64,13 +69,17 @@ export class TaskDetailComponent implements OnInit {
   }
 
   onComplete(task: Task): void {
-    if (!task.canCompleteToday || this.completing()) return;
+    if (!nextTaskReward(task) || this.completing()) return;
 
     this.completing.set(true);
     this.errorMessage.set(null);
 
     this.taskService.completeTask(task.id)
       .pipe(
+        tap(() => {
+          const updated = this.findTaskInState(task.id);
+          if (updated) this.task.set(updated);
+        }),
         switchMap(() => forkJoin({
           profile: this.profileService.refreshProfile(),
           tasks: this.taskService.loadTodayTasks()

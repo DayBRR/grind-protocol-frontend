@@ -1,4 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { nextTaskReward } from '../../../core/models/task-reward-preview';
 import { Task } from '../../../core/models/domain.models';
 
 const DIFFICULTY_COLOR: Record<string, string> = {
@@ -35,6 +36,10 @@ export class TaskCardComponent {
 
   @Output() complete = new EventEmitter<Task>();
   @Output() cardClick = new EventEmitter<Task>();
+
+  get rewardPreview() {
+    return nextTaskReward(this.task);
+  }
 
   get isDone(): boolean {
     return (this.task.completedToday ?? 0) >= this.task.maxCompletionsPerDay;
