@@ -47,10 +47,12 @@
 
     <div class="form-row">
       <div class="form-section">
-        <label class="form-label toggle-label">
+        <label class="form-label toggle-label" for="task-mandatory">
           <span>Mandatory</span>
           <button
             type="button"
+            id="task-mandatory"
+            aria-describedby="task-mandatory-hint"
             class="toggle"
             [class.toggle--on]="form.mandatory"
             (click)="form.mandatory = !form.mandatory"
@@ -59,14 +61,16 @@
             <span class="toggle__thumb"></span>
           </button>
         </label>
-        <p class="form-hint">Required to qualify the day</p>
+        <p class="form-hint" id="task-mandatory-hint">Required to qualify the day</p>
       </div>
 
       <div class="form-section">
-        <label class="form-label toggle-label">
+        <label class="form-label toggle-label" for="task-repeatable">
           <span>Repeatable</span>
           <button
             type="button"
+            id="task-repeatable"
+            aria-describedby="task-repeatable-hint"
             class="toggle"
             [class.toggle--on]="form.repeatable"
             (click)="toggleRepeatable()"
@@ -75,7 +79,7 @@
             <span class="toggle__thumb"></span>
           </button>
         </label>
-        <p class="form-hint">Can be completed multiple times per day</p>
+        <p class="form-hint" id="task-repeatable-hint">Can be completed multiple times per day</p>
       </div>
     </div>
 

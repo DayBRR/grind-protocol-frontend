@@ -116,7 +116,7 @@
 
 .detail-stat__label {
   font-size: 10px;
-  color: var(--text-dim);
+  color: var(--text-muted);
   display: block;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -151,13 +151,13 @@
 .info-zone {
   border-top: 1px solid var(--border);
   padding-top: 16px;
-  color: var(--text-dim);
+  color: var(--text-muted);
   font-size: 12px;
   line-height: 1.5;
 }
 
 .loading {
-  color: var(--text-dim);
+  color: var(--text-muted);
   font-size: 13px;
 }
 

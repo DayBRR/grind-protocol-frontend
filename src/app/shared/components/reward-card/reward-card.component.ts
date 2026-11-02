@@ -17,11 +17,14 @@ export class RewardCardComponent {
     return this.reward.lockedReason;
   }
 
-  onClaim(): void {
+  onClaim(event?: MouseEvent): void {
     if (this.lockedReason) {
       return;
     }
 
+    // Touch browsers do not always focus a button on activation. Capture a real
+    // opener before the dialog mounts so closing can restore keyboard focus.
+    (event?.currentTarget as HTMLElement | null)?.focus({ preventScroll: true });
     this.claim.emit(this.reward);
   }
 }

@@ -57,7 +57,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: var(--text-dim);
+  color: var(--text-muted);
   transition: background 0.15s, color 0.15s;
   text-decoration: none;
   border: none;
@@ -67,7 +67,7 @@
 
 .sidebar__link:hover {
   background: var(--bg-elevated);
-  color: var(--text-muted);
+  color: var(--text);
 }
 
 .sidebar__link--active {

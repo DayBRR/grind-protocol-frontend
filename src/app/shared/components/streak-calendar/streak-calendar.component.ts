@@ -42,7 +42,7 @@ export interface StreakDay {
       gap: 3px;
       font-family: var(--font-mono);
       font-size: 8px;
-      color: var(--text-dim);
+      color: var(--text-muted);
       transition: border-color 0.15s;
     }
 

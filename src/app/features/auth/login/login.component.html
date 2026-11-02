@@ -15,8 +15,9 @@
 
         <div class="auth-form">
           <div class="form-field">
-            <label class="form-label">Username</label>
+            <label class="form-label" for="login-username">Username</label>
             <input
+              id="login-username"
               type="text"
               placeholder="your_username"
               [(ngModel)]="username"
@@ -27,8 +28,9 @@
           </div>
 
           <div class="form-field">
-            <label class="form-label">Password</label>
+            <label class="form-label" for="login-password">Password</label>
             <input
+              id="login-password"
               type="password"
               placeholder="••••••••"
               [(ngModel)]="password"

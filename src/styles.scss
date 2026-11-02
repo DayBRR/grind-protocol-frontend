@@ -97,6 +97,17 @@ button {
   cursor: pointer;
 }
 
+button:focus-visible, a:focus-visible,
+input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 2px solid var(--xp);
+  outline-offset: 2px;
+}
+
+button.btn--sm, button.claim-btn {
+  min-width: 44px;
+  min-height: 44px;
+}
+
 input, textarea, select {
   font-family: var(--font-display);
   background: var(--bg-input);
@@ -138,7 +149,7 @@ input:focus, textarea:focus, select:focus {
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--text-dim);
+  color: var(--text-muted);
   margin-bottom: 14px;
 }
 
