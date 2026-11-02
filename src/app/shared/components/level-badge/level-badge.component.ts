@@ -25,7 +25,7 @@ import { Component, Input } from '@angular/core';
       font-size: 10px;
       font-weight: 600;
       letter-spacing: 0.08em;
-      color: var(--text-dim);
+      color: var(--text-muted);
     }
 
     .level-badge__num {

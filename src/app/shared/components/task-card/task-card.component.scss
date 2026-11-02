@@ -19,20 +19,20 @@
   border-color: var(--border-md);
 }
 
-.task-card--done {
+.task-card--done .task-card__check {
   opacity: 0.5;
 }
 
 .task-card--done .task-card__title {
   text-decoration: line-through;
-  color: var(--text-dim);
+  color: var(--text-muted);
 }
 
 .task-card__check {
-  width: 20px;
-  height: 20px;
-  border-radius: 5px;
-  border: 1.5px solid var(--border-md);
+  width: 44px;
+  height: 44px;
+  position: relative;
+  border: 0;
   background: transparent;
   color: white;
   font-size: 11px;
@@ -44,11 +44,23 @@
   transition: all 0.15s;
 }
 
-.task-card__check:hover:not(:disabled) {
+.task-card__check::before {
+  content: '';
+  position: absolute;
+  inset: 12px;
+  border: 1.5px solid var(--border-md);
+  border-radius: 5px;
+}
+
+.task-card__check span {
+  position: relative;
+}
+
+.task-card__check:hover:not(:disabled)::before {
   border-color: var(--xp);
 }
 
-.task-card__check--done {
+.task-card__check--done::before {
   background: var(--success) !important;
   border-color: var(--success) !important;
 }
@@ -86,7 +98,7 @@
 }
 
 .task-card__completion {
-  color: var(--text-dim);
+  color: var(--text-muted);
   font-size: 10px;
 }
 
@@ -125,7 +137,7 @@
 @media (max-width: 600px) {
   .task-card {
     display: grid;
-    grid-template-columns: 20px minmax(0, 1fr);
+    grid-template-columns: 44px minmax(0, 1fr);
     align-items: start;
   }
 

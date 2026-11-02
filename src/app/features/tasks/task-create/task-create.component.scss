@@ -59,7 +59,7 @@
 .form-label {
   font-size: 11px;
   font-weight: 600;
-  color: var(--text-dim);
+  color: var(--text-muted);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -72,7 +72,7 @@
 
 .form-hint {
   font-size: 11px;
-  color: var(--text-dim);
+  color: var(--text-muted);
 }
 
 textarea {
@@ -81,10 +81,9 @@ textarea {
 }
 
 .toggle {
-  width: 36px;
-  height: 20px;
-  border-radius: 10px;
-  background: var(--border-md);
+  width: 44px;
+  height: 44px;
+  background: transparent;
   position: relative;
   cursor: pointer;
   transition: background 0.2s;
@@ -93,14 +92,26 @@ textarea {
   padding: 0;
 }
 
-.toggle--on {
+.toggle::before {
+  content: '';
+  position: absolute;
+  width: 36px;
+  height: 20px;
+  top: 12px;
+  left: 4px;
+  border-radius: 10px;
+  background: var(--border-md);
+  transition: background 0.2s;
+}
+
+.toggle--on::before {
   background: var(--primary);
 }
 
 .toggle__thumb {
   position: absolute;
-  top: 2px;
-  left: 2px;
+  top: 14px;
+  left: 6px;
   width: 16px;
   height: 16px;
   border-radius: 50%;
@@ -127,7 +138,7 @@ textarea {
 
 .xp-preview__label {
   font-size: 10px;
-  color: var(--text-dim);
+  color: var(--text-muted);
   display: block;
   margin-bottom: 4px;
   text-transform: uppercase;

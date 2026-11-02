@@ -24,11 +24,11 @@ import { DecimalPipe } from '@angular/common';
       justify-content: space-between;
       font-size: 11px;
       font-family: var(--font-mono);
-      color: var(--text-dim);
+      color: var(--text-muted);
       margin-bottom: 6px;
     }
 
-    .xp-bar__next { color: var(--text-dim); }
+    .xp-bar__next { color: var(--text-muted); }
 
     .xp-bar__track {
       height: 5px;

@@ -24,7 +24,7 @@
   border-color: rgba(234, 179, 8, 0.38);
 }
 
-.reward-card--locked {
+.reward-card--locked .reward-card__icon {
   opacity: 0.74;
 }
 
@@ -78,6 +78,7 @@
 }
 
 .reward-card__footer {
+  flex-wrap: wrap;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -98,7 +99,7 @@
 }
 
 .reward-card__status--locked {
-  color: var(--text-dim);
+  color: var(--text-muted);
   background: var(--bg-input);
   border: 1px solid var(--border);
 }

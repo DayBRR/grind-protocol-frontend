@@ -58,7 +58,7 @@ const CIRCUMFERENCE = 2 * Math.PI * 40; // r=40
     .ring-sub {
       display: block;
       font-size: 10px;
-      color: var(--text-dim);
+      color: var(--text-muted);
       font-family: var(--font-mono);
       margin-top: 2px;
     }
