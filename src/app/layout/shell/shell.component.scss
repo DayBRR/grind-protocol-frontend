@@ -22,3 +22,9 @@
 .shell__content::-webkit-scrollbar { width: 4px; }
 .shell__content::-webkit-scrollbar-track { background: transparent; }
 .shell__content::-webkit-scrollbar-thumb { background: var(--border-md); border-radius: 2px; }
+
+@media (max-width: 600px) {
+  .shell__content {
+    padding: 12px;
+  }
+}

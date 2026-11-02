@@ -44,6 +44,7 @@
 }
 
 .reward-card__name {
+  overflow-wrap: anywhere;
   font-size: 13px;
   font-weight: 700;
   color: var(--text);
@@ -51,6 +52,7 @@
 }
 
 .reward-card__desc {
+  overflow-wrap: anywhere;
   font-size: 11px;
   color: var(--text-muted);
   margin: 4px 0 0;

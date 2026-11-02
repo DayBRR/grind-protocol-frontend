@@ -1,3 +1,8 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
 .task-card {
   display: flex;
   align-items: center;
@@ -115,4 +120,27 @@
   color: var(--xp);
   background: var(--xp-glow);
   border: 1px solid rgba(34, 211, 238, 0.15);
+}
+
+@media (max-width: 600px) {
+  .task-card {
+    display: grid;
+    grid-template-columns: 20px minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .task-card__title {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .task-card__meta,
+  .task-card__right {
+    flex-wrap: wrap;
+  }
+
+  .task-card__right {
+    grid-column: 2;
+    min-width: 0;
+  }
 }
