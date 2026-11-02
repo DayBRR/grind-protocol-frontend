@@ -27,8 +27,8 @@
       box-shadow: 0 0 24px var(--primary-glow);
     }
 
-    .profile-hero__info { flex: 1; min-width: 0; }
-    .profile-hero__name { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+    .profile-hero__info { flex: 1; min-width: 0; max-width: 100%; }
+    .profile-hero__name { font-size: 22px; font-weight: 800; margin-bottom: 4px; overflow-wrap: anywhere; }
 
     .stats-grid {
       display: grid;
@@ -60,4 +60,5 @@
     @media (max-width: 600px) {
       .stats-grid { grid-template-columns: repeat(2, 1fr); }
       .profile-hero { flex-direction: column; }
+      .profile-hero__info { width: 100%; }
     }
