@@ -1,4 +1,4 @@
-import { Component, Input, computed, signal } from '@angular/core';
+import { Component, Input } from '@angular/core';
 
 const CIRCUMFERENCE = 2 * Math.PI * 40; // r=40
 
@@ -19,6 +19,7 @@ const CIRCUMFERENCE = 2 * Math.PI * 40; // r=40
           stroke-linecap="round"
           [attr.stroke-dasharray]="circumference"
           [attr.stroke-dashoffset]="dashOffset()"
+          [style.visibility]="progressFraction > 0 ? 'visible' : 'hidden'"
           transform="rotate(-90 48 48)"
           class="ring-progress"
         />
@@ -74,8 +75,16 @@ export class DailyRingComponent {
 
   readonly circumference = CIRCUMFERENCE;
 
-  dashOffset = computed(() => {
-    const ratio = this.total > 0 ? this.completed / this.total : 0;
-    return CIRCUMFERENCE * (1 - ratio);
-  });
+  // Classic @Input values are not signal dependencies: calculate from their
+  // current values on each render, including when HTTP data arrives after F5.
+  get progressFraction(): number {
+    if (!Number.isFinite(this.completed) || !Number.isFinite(this.total) || this.total <= 0) {
+      return 0;
+    }
+    return Math.max(0, Math.min(this.completed / this.total, 1));
+  }
+
+  dashOffset(): number {
+    return CIRCUMFERENCE * (1 - this.progressFraction);
+  }
 }
